@@ -1,4 +1,4 @@
-package com.dev.zine.controllers;
+package com.dev.zine.api.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
