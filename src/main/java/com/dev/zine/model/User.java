@@ -29,7 +29,7 @@ public class User {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "type")
+    @Column(name = "type", columnDefinition = "String default user")
     private String type;
 
     @Column(name = "pushToken")

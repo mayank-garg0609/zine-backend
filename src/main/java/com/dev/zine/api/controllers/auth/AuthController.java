@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.LoginBody;
 import com.dev.zine.api.model.LoginResponse;
+import com.dev.zine.api.model.PasswordResetBody;
 import com.dev.zine.api.model.RegistrationBody;
 import com.dev.zine.exceptions.EmailFailureException;
+import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotVerifiedException;
 import com.dev.zine.model.User;
@@ -93,6 +95,24 @@ public class AuthController {
     @GetMapping("/me")
     public User getLoggedInUserProfile(@AuthenticationPrincipal User user) {
         return user;
+    }
+
+    @PostMapping("/forgot")
+    public ResponseEntity forgotPassword(@RequestParam String email) {
+        try {
+            userService.forgotPassword(email);
+            return ResponseEntity.ok().build();
+        } catch (EmailNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity resetPassword(@Valid @RequestBody PasswordResetBody body) {
+        userService.resetPassword(body);
+        return ResponseEntity.ok().build();
     }
 
 }
