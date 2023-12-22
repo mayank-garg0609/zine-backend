@@ -96,7 +96,7 @@ public class JWTService {
      * @param token The JWT to decode.
      * @return The username stored inside.
      */
-    public String getUsername(String token) {
+    public String getEmail(String token) {
         DecodedJWT jwt = JWT.require(algorithm).withIssuer(issuer).build().verify(token);
         return jwt.getClaim(USERNAME_KEY).asString();
     }

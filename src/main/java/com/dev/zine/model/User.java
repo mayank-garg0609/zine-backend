@@ -2,6 +2,8 @@ package com.dev.zine.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*; // for Spring Boot 3
 import lombok.Data;
 
@@ -36,7 +38,8 @@ public class User {
     @Column(name = "dp")
     private int dp;
 
-    @ManyToMany(mappedBy = "members")
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "members")
     private Set<Rooms> userRooms = new HashSet<>();
 
 }

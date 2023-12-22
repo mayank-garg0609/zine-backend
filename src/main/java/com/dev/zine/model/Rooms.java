@@ -2,6 +2,8 @@ package com.dev.zine.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +34,7 @@ public class Rooms {
     @Column(name = "")
     private int dp;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(name = "userRooms", joinColumns = @JoinColumn(name = "room_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> members = new HashSet<>();
