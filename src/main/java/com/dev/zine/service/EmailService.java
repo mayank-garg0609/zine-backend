@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.exceptions.EmailFailureException;
+import com.dev.zine.model.User;
 import com.dev.zine.model.VerificationToken;
 
 /**
@@ -56,6 +57,27 @@ public class EmailService {
         message.setSubject("Verify your email to active your account.");
         message.setText("Please follow the link below to verify your email to active your account.\n" +
                 url + "/auth/verify?token=" + verificationToken.getToken());
+        try {
+            javaMailSender.send(message);
+        } catch (MailException ex) {
+            throw new EmailFailureException();
+        }
+    }
+
+    /**
+     * Sends a password reset request email to the user.
+     * 
+     * @param user  The user to send to.
+     * @param token The token to send the user for reset.
+     * @throws EmailFailureException
+     */
+    public void sendPasswordResetEmail(User user, String token) throws EmailFailureException {
+        SimpleMailMessage message = makeMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject("Your password reset request link.");
+        message.setText("You requested a password reset on our website. Please " +
+                "find the link below to be able to reset your password.\n" + url +
+                "/auth/reset?token=" + token);
         try {
             javaMailSender.send(message);
         } catch (MailException ex) {

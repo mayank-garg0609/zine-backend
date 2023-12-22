@@ -3,10 +3,12 @@ package com.dev.zine.service;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.LoginBody;
+import com.dev.zine.api.model.PasswordResetBody;
 import com.dev.zine.api.model.RegistrationBody;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;
+import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotVerifiedException;
 import com.dev.zine.model.User;
@@ -119,6 +121,27 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
+        Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            User user = opUser.get();
+            String token = jwtService.generatePasswordResetJWT(user);
+            emailService.sendPasswordResetEmail(user, token);
+        } else {
+            throw new EmailNotFoundException();
+        }
+    }
+
+    public void resetPassword(PasswordResetBody body) {
+        String email = jwtService.getResetPasswordEmail(body.getToken());
+        Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            User user = opUser.get();
+            user.setPassword(encryptionService.encryptPassword(body.getPassword()));
+            userDAO.save(user);
+        }
     }
 
 }
