@@ -12,10 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.Room.RoomBody;
-import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.service.RoomService;
-import com.dev.zine.service.UserService;
 
 import jakarta.validation.Valid;
 

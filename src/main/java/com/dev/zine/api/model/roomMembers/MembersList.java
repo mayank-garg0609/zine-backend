@@ -7,12 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class AddMembersBody {
+public class MembersList {
 
     @NotNull
     private Long room;
 
     @NotNull
     @NotEmpty
-    private List<Long> members;
+    private List<Members> members;
 }
