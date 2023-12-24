@@ -1,6 +1,6 @@
 package com.dev.zine.api.controllers.roomMembers;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.zine.api.model.Room.RoomBody;
-import com.dev.zine.api.model.roomMembers.AddMembersBody;
-import com.dev.zine.exceptions.UserAlreadyExistsException;
-import com.dev.zine.model.Rooms;
+import com.dev.zine.api.model.roomMembers.MembersList;
+import com.dev.zine.api.model.roomMembers.MembersResponse;
+import com.dev.zine.api.model.roomMembers.RemoveMembersList;
+import com.dev.zine.exceptions.RoomDoesNotExist;
+
 import com.dev.zine.service.RoomMembersService;
-import com.dev.zine.service.UserService;
 
 import jakarta.validation.Valid;
 
@@ -30,12 +30,28 @@ public class RoomMembersController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity add(@RequestBody AddMembersBody addMembersBody) {
+    public ResponseEntity add(@Valid @RequestBody MembersList addMembersBody) {
         System.out.println("addMembersBody");
         System.out.println(addMembersBody);
         try {
-            roomMembersService.AddMembers();
-            return ResponseEntity.ok().build();
+            String message = roomMembersService.addMembers(addMembersBody);
+            return ResponseEntity.ok(message);
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/remove")
+    public ResponseEntity remove(@Valid @RequestBody RemoveMembersList removeMembersBody) {
+        System.out.println("remove Members form room");
+        System.out.println(removeMembersBody);
+        try {
+            String message = roomMembersService.removeMembers(removeMembersBody);
+            return ResponseEntity.ok(message);
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -45,10 +61,13 @@ public class RoomMembersController {
     public ResponseEntity getRoomMembers(@RequestParam Long roomId) {
         System.out.println(roomId);
         try {
-            roomMembersService.getMemebers();
 
-            return ResponseEntity.ok().build();
+            List<MembersResponse> res = roomMembersService.getMemebers(roomId);
 
+            return ResponseEntity.ok(res);
+
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().build();
         }

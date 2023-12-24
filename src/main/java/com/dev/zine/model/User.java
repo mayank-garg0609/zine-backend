@@ -42,7 +42,7 @@ public class User {
     private boolean isEmailVerified;
 
     @Column(name = "dp")
-    private int dp;
+    private String dp;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

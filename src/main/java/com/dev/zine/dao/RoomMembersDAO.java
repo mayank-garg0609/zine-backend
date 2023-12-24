@@ -1,6 +1,7 @@
 package com.dev.zine.dao;
 
 import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
@@ -13,5 +14,9 @@ public interface RoomMembersDAO extends ListCrudRepository<RoomMembers, Long> {
     List<RoomMembers> findByRoom(Rooms room);
 
     List<RoomMembers> findByUser(User user);
+
+    boolean existsByUserAndRoom(User user, Rooms room);
+
+    void deleteByUserAndRoom(User user, Rooms room);
 
 }
