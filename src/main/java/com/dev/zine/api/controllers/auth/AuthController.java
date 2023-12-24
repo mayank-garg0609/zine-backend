@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.zine.api.model.LoginBody;
-import com.dev.zine.api.model.LoginResponse;
-import com.dev.zine.api.model.PasswordResetBody;
-import com.dev.zine.api.model.RegistrationBody;
+import com.dev.zine.api.model.auth.LoginBody;
+import com.dev.zine.api.model.auth.LoginResponse;
+import com.dev.zine.api.model.auth.PasswordResetBody;
+import com.dev.zine.api.model.auth.RegistrationBody;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
@@ -32,12 +32,6 @@ public class AuthController {
         this.userService = userService;
     }
 
-    /**
-     * Post Mapping to handle registering users.
-     *
-     * @param registrationBody The registration information.
-     * @return Response to front end.
-     */
     @PostMapping("/register")
     public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registrationBody) {
         System.out.println(registrationBody);
@@ -76,13 +70,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Post mapping to verify the email of an account using the emailed token.
-     * 
-     * @param token The token emailed for verification. This is not the same as a
-     *              authentication JWT.
-     * @return 200 if successful. 409 if failure.
-     */
     @PostMapping("/verify")
     public ResponseEntity verifyEmail(@RequestParam String token) {
         if (userService.verifyUser(token)) {

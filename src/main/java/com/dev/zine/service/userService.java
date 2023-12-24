@@ -2,9 +2,9 @@ package com.dev.zine.service;
 
 import org.springframework.stereotype.Service;
 
-import com.dev.zine.api.model.LoginBody;
-import com.dev.zine.api.model.PasswordResetBody;
-import com.dev.zine.api.model.RegistrationBody;
+import com.dev.zine.api.model.auth.LoginBody;
+import com.dev.zine.api.model.auth.PasswordResetBody;
+import com.dev.zine.api.model.auth.RegistrationBody;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;

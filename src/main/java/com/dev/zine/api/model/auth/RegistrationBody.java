@@ -1,4 +1,4 @@
-package com.dev.zine.api.model;
+package com.dev.zine.api.model.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
