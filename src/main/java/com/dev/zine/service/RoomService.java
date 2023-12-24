@@ -1,7 +1,9 @@
 package com.dev.zine.service;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.Room.RoomBody;
@@ -10,12 +12,15 @@ import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class RoomService {
 
     private RoomsDAO roomDAO;
     private RoomMembersDAO roomMembersDAO;
 
+    @Autowired
     public RoomService(RoomsDAO roomsDAO, RoomMembersDAO roomMembersDAO) {
         this.roomDAO = roomsDAO;
         this.roomMembersDAO = roomMembersDAO;
@@ -39,7 +44,9 @@ public class RoomService {
 
     }
 
-    public void deleteRoom() {
+    @Transactional
+    public void deleteRooms(List<Long> ids) {
+        roomDAO.deleteAllById(ids);
 
     }
 
