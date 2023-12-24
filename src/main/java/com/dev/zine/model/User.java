@@ -4,7 +4,7 @@ import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.*; // for Spring Boot 3
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 
@@ -43,10 +43,6 @@ public class User {
 
     @Column(name = "dp")
     private int dp;
-
-    @JsonIgnore
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "members")
-    private Set<Rooms> userRooms = new HashSet<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,4 +1,4 @@
-package com.dev.zine.api.model;
+package com.dev.zine.api.model.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,11 +8,10 @@ import jakarta.validation.constraints.NotNull;
  */
 public class LoginBody {
 
-    /** The username to log in with. */
     @NotNull
     @NotBlank
     private String email;
-    /** The password to log in with. */
+
     @NotNull
     @NotBlank
     private String password;

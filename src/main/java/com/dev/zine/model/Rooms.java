@@ -12,12 +12,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "Rooms")
 @Data
+@NoArgsConstructor
 public class Rooms {
 
     @Id
@@ -28,15 +33,18 @@ public class Rooms {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "type")
     private String type;
 
-    @Column(name = "")
-    private int dp;
+    @Column(name = "dpUrl")
+    private String dpUrl;
 
     @JsonIgnore
-    @ManyToMany
-    @JoinTable(name = "userRooms", joinColumns = @JoinColumn(name = "room_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private Set<User> members = new HashSet<>();
+    @ManyToMany(mappedBy = "room")
+    @OrderBy("id desc")
+    private List<RoomMembers> roomMembers = new ArrayList<>();
 
 }

@@ -58,6 +58,7 @@ public class JWTRequestFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             } catch (JWTDecodeException ex) {
+                System.out.println("caught filet error");
             }
         }
         filterChain.doFilter(request, response);
