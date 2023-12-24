@@ -1,5 +1,6 @@
 package com.dev.zine.api.controllers.room;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,19 @@ public class RoomController {
                 return ResponseEntity.ok(room);
             else
                 return ResponseEntity.notFound().build();
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity delete(@RequestBody List<Long> roomId) {
+        System.out.println(roomId);
+        try {
+            roomService.deleteRooms(roomId);
+
+            return ResponseEntity.ok().body("Rooms Deleted " + roomId.toString());
 
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();

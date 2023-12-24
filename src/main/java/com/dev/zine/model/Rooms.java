@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -43,8 +44,8 @@ public class Rooms {
     private String dpUrl;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "room")
+    @ManyToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
     @OrderBy("id desc")
-    private List<RoomMembers> roomMembers = new ArrayList<>();
+    private List<RoomMembers> roomMembers;
 
 }
