@@ -21,7 +21,7 @@ public class Message {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "type")
+    @Column(name = "type", columnDefinition = "varchar(255) default text")
     private String type;
 
     @Column(name = "content")

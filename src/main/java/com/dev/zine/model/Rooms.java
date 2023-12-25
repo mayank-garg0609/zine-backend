@@ -1,5 +1,6 @@
 package com.dev.zine.model;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,13 +11,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -43,9 +40,16 @@ public class Rooms {
     @Column(name = "dpUrl")
     private String dpUrl;
 
+    @Column(name = "timestamp")
+    private Timestamp timestamp;
+
     @JsonIgnore
     @ManyToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
-    @OrderBy("id desc")
     private List<RoomMembers> roomMembers;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "roomId", cascade = CascadeType.REMOVE)
+    @OrderBy("id desc")
+    private List<Message> messages;
 
 }
