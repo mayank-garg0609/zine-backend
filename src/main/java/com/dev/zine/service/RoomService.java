@@ -2,14 +2,12 @@ package com.dev.zine.service;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.dev.zine.api.model.Room.RoomBody;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
-import com.dev.zine.model.RoomMembers;
+import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Rooms;
 
 import jakarta.transaction.Transactional;
@@ -50,8 +48,32 @@ public class RoomService {
 
     }
 
-    public void updateRoomInfo() {
+    public Rooms updateRoomInfo(Long roomId, RoomBody room) throws RoomDoesNotExist {
+        Rooms existingRoom = roomDAO.findById(roomId).orElse(null);
 
+        if (existingRoom != null) {
+            try {
+                if (room.getName() != null) {
+                    existingRoom.setName(room.getName());
+                }
+                if (room.getType() != null) {
+                    existingRoom.setType(room.getType());
+                }
+                if (room.getDescription() != null) {
+                    existingRoom.setDescription(room.getDescription());
+                }
+                if (room.getDpUrl() != null) {
+                    existingRoom.setDpUrl(room.getDpUrl());
+                }
+
+                return roomDAO.save(existingRoom);
+            } catch (Exception ex) {
+
+                throw ex;
+            }
+        } else {
+
+            throw new RoomDoesNotExist();
+        }
     }
-
 }

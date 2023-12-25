@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.Room.RoomBody;
+import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.service.RoomService;
 
@@ -61,6 +62,21 @@ public class RoomController {
 
             return ResponseEntity.ok().body("Rooms Deleted " + roomId.toString());
 
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity delete(@RequestParam Long roomId, @RequestBody RoomBody room) {
+        System.out.println(roomId);
+        try {
+            roomService.updateRoomInfo(roomId, room);
+
+            return ResponseEntity.ok().body("Rooms Updated " + roomId.toString());
+
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
