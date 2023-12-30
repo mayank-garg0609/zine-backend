@@ -1,0 +1,71 @@
+package com.dev.zine.service;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.NoSuchElementException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
+import com.dev.zine.api.model.messages.MessageBody;
+import com.dev.zine.dao.MessagesDAO;
+import com.dev.zine.dao.RoomsDAO;
+import com.dev.zine.dao.UserDAO;
+import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.model.Message;
+import com.dev.zine.model.Rooms;
+import com.dev.zine.model.User;
+
+@Service
+public class MessagingService {
+    private MessagesDAO messagesDAO;
+    private RoomsDAO roomsDAO;
+    private UserDAO userDAO;
+    private FirebaseMessagingService fcm;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+
+    @Autowired
+    public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO) {
+        this.messagesDAO = messagesDAO;
+        this.fcm = fcm;
+        this.userDAO = userDAO;
+        this.roomsDAO = roomsDAO;
+
+    }
+
+    public void sendMessage(MessageBody msg) throws NoSuchElementException {
+        Message newMsg = new Message();
+        Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow();
+        User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow();
+        newMsg.setType(msg.getType());
+        newMsg.setContent(msg.getContent());
+        newMsg.setContentUrl(msg.getContentUrl());
+        newMsg.setReplyTo(messagesDAO.findById(msg.getReplyTo()).orElse(null));
+        newMsg.setRoomId(room);
+        newMsg.setSentFrom(sentFrom);
+        newMsg.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+        messagesDAO.save(newMsg);
+
+        simpMessagingTemplate.convertAndSend("/topic/room/" + msg.getRoomId(),
+                msg);
+        fcm.sendNotificationToTopic("room" + msg.getRoomId(), room.getName(),
+                sentFrom.getName() + ": " + msg.getContent(),
+                msg.getContentUrl());
+
+    }
+
+    public List<Message> getRoomMessages(long roomId) throws RoomDoesNotExist {
+        Rooms room = roomsDAO.findById(roomId).orElse(null);
+        if (room != null) {
+            List<Message> messages = messagesDAO.findByRoomIdOrderByTimestampDesc(room);
+            return messages;
+        } else {
+            throw new RoomDoesNotExist();
+        }
+    }
+
+}
