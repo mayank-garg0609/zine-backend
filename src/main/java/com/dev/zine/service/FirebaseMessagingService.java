@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dev.zine.api.model.Notification.NotifyBody;
 import com.dev.zine.model.NotifyT;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.messaging.FirebaseMessaging;
