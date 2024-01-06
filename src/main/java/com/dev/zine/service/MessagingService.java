@@ -25,15 +25,16 @@ public class MessagingService {
     private RoomsDAO roomsDAO;
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
-    @Autowired
+ 
     private SimpMessagingTemplate simpMessagingTemplate;
 
-    @Autowired
-    public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO) {
+ 
+    public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
         this.messagesDAO = messagesDAO;
         this.fcm = fcm;
         this.userDAO = userDAO;
         this.roomsDAO = roomsDAO;
+        this.simpMessagingTemplate=simpMessagingTemplate;
 
     }
 
@@ -50,7 +51,7 @@ public class MessagingService {
         newMsg.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
         messagesDAO.save(newMsg);
 
-        simpMessagingTemplate.convertAndSend("/topic/room/" + msg.getRoomId(),
+        simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
                 msg);
         fcm.sendNotificationToTopic("room" + msg.getRoomId(), room.getName(),
                 sentFrom.getName() + ": " + msg.getContent(),
@@ -61,6 +62,8 @@ public class MessagingService {
     public List<Message> getRoomMessages(long roomId) throws RoomDoesNotExist {
         Rooms room = roomsDAO.findById(roomId).orElse(null);
         if (room != null) {
+            // throw new RoomDoesNotExist();
+            // List<Message> messages=new List();
             List<Message> messages = messagesDAO.findByRoomIdOrderByTimestampDesc(room);
             return messages;
         } else {
