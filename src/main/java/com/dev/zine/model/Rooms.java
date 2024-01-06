@@ -47,9 +47,9 @@ public class Rooms {
     @ManyToMany(mappedBy = "room", cascade = CascadeType.REMOVE)
     private List<RoomMembers> roomMembers;
 
-    @JsonIgnore
-    @ManyToMany(mappedBy = "roomId", cascade = CascadeType.REMOVE)
-    @OrderBy("id desc")
-    private List<Message> messages;
+    // @JsonIgnore
+    // @ManyToMany(mappedBy = "roomId", cascade = CascadeType.REMOVE)
+    // @OrderBy("id desc")
+    // private List<Message> messages;
 
 }

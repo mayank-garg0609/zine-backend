@@ -1,7 +1,7 @@
 package com.dev.zine.dao;
 
 import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.query.Param;
+
 
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
