@@ -1,14 +1,14 @@
 #
 # Build stage
 #
-FROM maven:3.9.6-jdk-17 AS build
+FROM maven:3.9.6-amazoncorretto AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
 #
 # Package stage
 #
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-slim
 COPY --from=build /target/zine-0.0.1-SNAPSHOT.jar zine.jar
 # ENV PORT=8080
 EXPOSE 8080
