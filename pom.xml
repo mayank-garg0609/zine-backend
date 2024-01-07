@@ -52,6 +52,11 @@
         <artifactId>postgresql</artifactId>
       
     </dependency>
+	<dependency>
+		<groupId>com.razorpay</groupId>
+		<artifactId>razorpay-java</artifactId>
+		<version>1.4.0</version> <!-- Check the latest version on Maven Central -->
+	</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
