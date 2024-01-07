@@ -10,6 +10,8 @@ RUN mvn clean package
 #
 FROM openjdk:18-jdk-slim
 COPY --from=build /target/zine-0.0.1-SNAPSHOT.jar zine.jar
+COPY src/main/resources/zine-firebase-admin.json /app/zine-firebase-admin.json
+
 # ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","zine.jar"]
