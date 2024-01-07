@@ -10,4 +10,6 @@ public class OrderRequest {
 
     @NotNull
     private String email;
+
+    private String remark;
 }
