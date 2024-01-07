@@ -4,9 +4,15 @@ package com.dev.zine.service;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
+
+import jakarta.transaction.Transactional;
+
 import com.dev.zine.api.model.payments.OrderRequest;
-import com.dev.zine.dao.PaymentsDAO;
+import com.dev.zine.dao.PaymentDAO;
+import java.util.Optional;
+
 import com.dev.zine.model.Payment;
+
 import com.razorpay.Order;
 
 import java.sql.Timestamp;
@@ -26,8 +32,13 @@ public class RazorpayService {
     @Value("${razorpay.keySecret}")
     private String keySecret;
 
-    @Autowired
-    private PaymentsDAO paymentsDao;
+    
+    private PaymentDAO paymentsDao;
+
+    public RazorpayService(PaymentDAO paymentsDAO)
+    {
+        this.paymentsDao=paymentsDAO;
+    }
 
     public String createOrder(OrderRequest orderRequest) throws RazorpayException {
         RazorpayClient razorpayClient = new RazorpayClient(keyId, keySecret);
@@ -40,24 +51,39 @@ public class RazorpayService {
         Order createdOrder = razorpayClient.orders.create(order);
 
         Payment payment = new Payment();
-        payment.setOrder(createdOrder.get("id"));
+        payment.setOrderId(createdOrder.get("id"));
         payment.setAmount(orderRequest.getAmount());
         payment.setEmail(orderRequest.getEmail());
         payment.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+        payment.setRemarks(orderRequest.getRemark());
         payment.setStatus("Due");
+        System.out.println(payment);
 
         paymentsDao.save(payment);
 
         return createdOrder.get("id");
     }
 
+    @Transactional
     public boolean verifyPaymentSignature(String orderId, String paymentId, String signature) throws RazorpayException {
         JSONObject options = new JSONObject();
         options.put("razorpay_order_id", orderId);
         options.put("razorpay_payment_id", paymentId);
         options.put("razorpay_signature", signature);
 
-        return Utils.verifyPaymentSignature(options, keySecret);
+        if( Utils.verifyPaymentSignature(options, keySecret))
+        {   
+         Payment pay= paymentsDao.findByOrderId(orderId).orElse(null);
+        if(pay==null) return false;
+        pay.setStatus("paid");
+        pay.setPayId(paymentId);
+        pay.setSignature(signature);
+        return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     // Additional methods for handling payment verification, refund, etc.

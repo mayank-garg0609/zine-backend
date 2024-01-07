@@ -14,14 +14,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/payment")
+@RequestMapping("/api")
 public class PaymentController {
 
     @Autowired
     private RazorpayService razorpayService;
 
-    @GetMapping("/create-order")
+    @PostMapping("/create-order")
     public ResponseEntity createOrder(@RequestBody OrderRequest orderRequest) throws RazorpayException {
+        System.out.println(orderRequest);
+        // return ResponseEntity.ok().build();
         String orderId = razorpayService.createOrder(orderRequest);
         return ResponseEntity.ok(orderId);
     }
