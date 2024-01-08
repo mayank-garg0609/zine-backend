@@ -4,14 +4,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class OrderRequest {
+public class VerifyOrderRequest {
     @NotNull
-    private Float amount;
+    private String paymentId;
 
     @NotNull
-    private String email;
+    private String orderId;
 
-    private String remark;
-
-    private String currency;
+    @NotNull
+    private String signature;
 }

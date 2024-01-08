@@ -8,7 +8,10 @@ import com.razorpay.Utils;
 import jakarta.transaction.Transactional;
 
 import com.dev.zine.api.model.payments.OrderRequest;
+import com.dev.zine.api.model.payments.VerifyOrderRequest;
 import com.dev.zine.dao.PaymentDAO;
+
+import java.util.List;
 import java.util.Optional;
 
 import com.dev.zine.model.Payment;
@@ -40,12 +43,12 @@ public class RazorpayService {
         this.paymentsDao=paymentsDAO;
     }
 
-    public String createOrder(OrderRequest orderRequest) throws RazorpayException {
+    public Payment createOrder(OrderRequest orderRequest) throws RazorpayException {
         RazorpayClient razorpayClient = new RazorpayClient(keyId, keySecret);
     
         JSONObject order = new JSONObject();
         order.put("amount", orderRequest.getAmount());
-        order.put("currency", "INR");
+        order.put("currency", orderRequest.getCurrency());
         order.put("receipt", "order_receipt_" + System.currentTimeMillis());
 
         Order createdOrder = razorpayClient.orders.create(order);
@@ -57,33 +60,37 @@ public class RazorpayService {
         payment.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
         payment.setRemarks(orderRequest.getRemark());
         payment.setStatus("Due");
+        payment.setType("Donation");
         System.out.println(payment);
 
         paymentsDao.save(payment);
 
-        return createdOrder.get("id");
+        return payment;
     }
 
     @Transactional
-    public boolean verifyPaymentSignature(String orderId, String paymentId, String signature) throws RazorpayException {
+    public boolean verifyPaymentSignature(VerifyOrderRequest verifyRequest) throws RazorpayException {
         JSONObject options = new JSONObject();
-        options.put("razorpay_order_id", orderId);
-        options.put("razorpay_payment_id", paymentId);
-        options.put("razorpay_signature", signature);
+        options.put("razorpay_order_id", verifyRequest.getOrderId());
+        options.put("razorpay_payment_id", verifyRequest.getPaymentId());
+        options.put("razorpay_signature", verifyRequest.getSignature());
 
-        if( Utils.verifyPaymentSignature(options, keySecret))
+        if(Utils.verifyPaymentSignature(options, keySecret))
         {   
-         Payment pay= paymentsDao.findByOrderId(orderId).orElse(null);
-        if(pay==null) return false;
-        pay.setStatus("paid");
-        pay.setPayId(paymentId);
-        pay.setSignature(signature);
-        return true;
+            Payment pay = paymentsDao.findByOrderId(verifyRequest.getOrderId()).orElse(null);
+            if (pay == null) return false;
+            pay.setStatus("Paid");
+            pay.setPayId(verifyRequest.getPaymentId());
+            pay.setSignature(verifyRequest.getSignature());
+
+            return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
+    }
+
+    public List<Payment> getCompletedPayments() {
+        return paymentsDao.getAllDonations();
     }
 
     // Additional methods for handling payment verification, refund, etc.

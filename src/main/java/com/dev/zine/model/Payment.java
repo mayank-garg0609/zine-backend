@@ -40,10 +40,15 @@ public class Payment {
     @Column(name="status")
     private String status;
 
+    @Column(name="type")
+    private String type;
+
     @Column(name="remarks")
     private String remarks;
-    @Column (name = "pay_id")
+
+    @Column (name="pay_id")
     private String payId;
-    @Column (name = "signature")
+
+    @Column (name="signature")
     private String signature;
 }
