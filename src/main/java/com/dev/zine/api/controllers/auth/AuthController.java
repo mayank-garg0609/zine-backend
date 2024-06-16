@@ -85,7 +85,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot")
-    public ResponseEntity forgotPassword(@RequestParam String email) {
+    public ResponseEntity<Object> forgotPassword(@RequestParam String email) {
         try {
             userService.forgotPassword(email);
             return ResponseEntity.ok().build();
