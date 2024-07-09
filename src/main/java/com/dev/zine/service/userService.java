@@ -76,23 +76,25 @@ public class UserService {
         verificationToken.setToken(jwtService.generateVerificationJWT(user));
         verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis()));
         verificationToken.setUser(user);
-        user.getVerificationTokens().add(verificationToken);
+        user.getVerificationTokens().add(verificationToken); //adds token to the list
         return verificationToken;
     }
 
     @Transactional
     public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
-        Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail());
+        Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exits
         if (opUser.isPresent()) {
             User user = opUser.get();
-            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) {
+            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { //verify password
                 if (user.isEmailVerified()) {
-                    return jwtService.generateJWT(user);
+                    return jwtService.generateJWT(user); // generate 
                 } else {
                     List<VerificationToken> verificationTokens = user.getVerificationTokens();
-                    boolean resend = verificationTokens.isEmpty() ||
+                    boolean resend = verificationTokens.isEmpty() || 
                             verificationTokens.get(0).getCreatedTimestamp()
-                                    .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
+                                    .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000))); 
+                                    // checks if tokens list is empty 
+                                    //or the latest token is older than 1hr
                     if (resend) {
                         VerificationToken verificationToken = createVerificationToken(user);
                         verificationTokenDAO.save(verificationToken);
@@ -143,5 +145,4 @@ public class UserService {
             userDAO.save(user);
         }
     }
-
 }
