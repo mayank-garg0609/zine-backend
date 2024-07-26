@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Members {
     @NotNull
-    private String userId;
+    private String userEmail;
 
     @NotNull
     private String role;
