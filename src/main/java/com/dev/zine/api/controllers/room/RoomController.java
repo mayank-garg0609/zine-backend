@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.Room.RoomBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
+import com.dev.zine.service.RoomMembersService;
 import com.dev.zine.service.RoomService;
 
 import jakarta.validation.Valid;
@@ -23,9 +26,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/rooms")
 public class RoomController {
     private RoomService roomService;
+    private RoomMembersService roomMembersService;
 
-    public RoomController(RoomService roomService) {
+    public RoomController(RoomService roomService, RoomMembersService roomMembersService) {
         this.roomService = roomService;
+        this.roomMembersService = roomMembersService;
     }
 
     @PostMapping("/create")
@@ -53,6 +58,16 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<Rooms>> getRoomsByUser(@RequestParam String email) {
+        try{
+            return roomMembersService.getRoomsByEmail(email);
+        } catch( Exception e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+    
 
     @PostMapping("/delete")
     public ResponseEntity delete(@RequestBody List<Long> roomId) {

@@ -7,6 +7,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import jakarta.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 // import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,17 +20,22 @@ import java.io.IOException;
 public class FirebaseConfig {
     private static final String APP_NAME = "my-app";
 
+    @Value("${app.environment}")
+    private String env;
+
     @Bean
     public FirebaseMessaging firebaseMessaging() throws IOException {
+        String absolutePath;
+        System.out.println(env);
+        if(env == "production"){
+            absolutePath = "/app/zine-firebase-admin.json";
+        } else{
+            String relativePath = "/src/main/resources/zine-firebase-admin.json";
+            absolutePath = new File(relativePath).getAbsolutePath();
+        }
 
-        String relativePath = "src/main/resources/zine-firebase-admin.json";
-       
-        String absolutePath = new File(relativePath).getAbsolutePath();
-          FileInputStream serviceAccount = new FileInputStream(absolutePath);
-        //  String relativePath = "/zine-firebase-admin.json";
-        // FileInputStream serviceAccount = new FileInputStream(relativePath);
+        FileInputStream serviceAccount = new FileInputStream(absolutePath);
       
-
         GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount);
         FirebaseOptions firebaseOptions = FirebaseOptions.builder()
                 .setCredentials(googleCredentials)
