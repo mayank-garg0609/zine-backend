@@ -24,7 +24,7 @@ public class TestController {
 
     @GetMapping("/test")
     public String test() {
-        return "API is Working";
+        return "CI/CD is Working";
     }
 
     @PostMapping("/sendNotif")

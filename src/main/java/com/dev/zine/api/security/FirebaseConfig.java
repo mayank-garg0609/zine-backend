@@ -22,12 +22,12 @@ public class FirebaseConfig {
     @Bean
     public FirebaseMessaging firebaseMessaging() throws IOException {
 
-        String relativePath = "src/main/resources/zine-firebase-admin.json";
+        // String relativePath = "src/main/resources/zine-firebase-admin.json";
        
-        String absolutePath = new File(relativePath).getAbsolutePath();
-          FileInputStream serviceAccount = new FileInputStream(absolutePath);
-        //  String relativePath = "/zine-firebase-admin.json";
-        // FileInputStream serviceAccount = new FileInputStream(relativePath);
+        // String absolutePath = new File(relativePath).getAbsolutePath();
+        //   FileInputStream serviceAccount = new FileInputStream(absolutePath);
+        String relativePath = "/app/zine-firebase-admin.json";
+        FileInputStream serviceAccount = new FileInputStream(relativePath);
       
 
         GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount);
