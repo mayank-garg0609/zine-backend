@@ -13,6 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Load Firebase Service file
+      env:
+        DATA: ${{ secrets.FIREBASE_ADMIN_JSON }}
+      run: echo $DATA | base64 -di > src/main/resource/zine-firebase-admin.json
+
     - name: Build Docker image
       run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest .
 
