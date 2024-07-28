@@ -47,5 +47,5 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
           docker stop zine-backend || true
           docker rm zine-backend || true
-          docker run -d --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
           '
