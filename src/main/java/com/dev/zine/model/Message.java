@@ -24,13 +24,13 @@ public class Message {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "type", columnDefinition = "varchar(255) default text")
+    @Column(name = "type", columnDefinition = "varchar(255) default 'text'")
     private String type;
 
     @Column(name = "content")
     private String content;
 
-    @Column(name = "conentUrl")
+    @Column(name = "contentUrl")
     private String contentUrl;
 
     @Column(name = "timestamp")
