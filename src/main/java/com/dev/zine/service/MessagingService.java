@@ -38,7 +38,7 @@ public class MessagingService {
 
     }
 
-    public void sendMessage(MessageBody msg) throws NoSuchElementException {
+    public Message sendMessage(MessageBody msg) throws NoSuchElementException {
         Message newMsg = new Message();
         Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow();
         User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow();
@@ -51,11 +51,13 @@ public class MessagingService {
         newMsg.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
         messagesDAO.save(newMsg);
 
-        simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
-                msg);
+        // simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
+        //         msg);
         fcm.sendNotificationToTopic("room" + msg.getRoomId(), room.getName(),
                 sentFrom.getName() + ": " + msg.getContent(),
                 msg.getContentUrl());
+
+        return newMsg;
 
     }
 

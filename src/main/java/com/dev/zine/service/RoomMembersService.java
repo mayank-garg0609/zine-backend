@@ -46,9 +46,11 @@ public class RoomMembersService {
                 List<RoomMembers> l = roomMembersDAO.findByUser(user);
                 List<Rooms> resRooms = new ArrayList<>();
                 for(RoomMembers rm: l){
-                    Optional<Rooms> opRoom = roomService.getRoomInfo(rm.getId());
-                    Rooms room = opRoom.get();
-                    resRooms.add(room);
+                    Optional<Rooms> opRoom = roomService.getRoomInfo(rm.getRoom().getId());
+                    if(opRoom.isPresent()){
+                        Rooms room = opRoom.get();
+                        resRooms.add(room);
+                    }
                 }
                 return ResponseEntity.ok().body(resRooms);
             } else {
@@ -56,6 +58,7 @@ public class RoomMembersService {
             }
         }
         catch(Exception e){
+            System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
