@@ -33,9 +33,9 @@ public class FirebaseConfig {
             String relativePath = "src/main/resources/zine-firebase-admin.json";
             absolutePath = new File(relativePath).getAbsolutePath();
         }
-
-        FileInputStream serviceAccount = new FileInputStream(absolutePath);
       
+        FileInputStream serviceAccount = new FileInputStream(absolutePath);
+
         GoogleCredentials googleCredentials = GoogleCredentials.fromStream(serviceAccount);
         FirebaseOptions firebaseOptions = FirebaseOptions.builder()
                 .setCredentials(googleCredentials)
