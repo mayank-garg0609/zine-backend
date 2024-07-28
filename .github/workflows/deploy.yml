@@ -3,44 +3,47 @@ name: Deploy Spring Boot App
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - main # or your deployment branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Load Firebase Service file
-      env:
-        DATA: ${{ secrets.FIREBASE_ADMIN_JSON }}
-      run: echo $DATA > src/main/resources/zine-firebase-admin.json
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin"
+          java-version: "17"
 
-    - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest .
+      - name: Load Firebase Service file
+        env:
+          DATA: ${{ secrets.FIREBASE_ADMIN_JSON }}
+        run: echo $DATA > src/main/resources/zine-firebase-admin.json
 
-    - name: Log in to Docker Hub
-      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Build with Maven
+        run: mvn clean install
 
-    - name: Push Docker image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v0.1.0
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_KEY }}
-        script: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          docker stop zine-backend || true
-          docker rm zine-backend || true
-          docker run -d --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+            docker stop zine-backend || true
+            docker rm zine-backend || true
+            docker run -d --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
