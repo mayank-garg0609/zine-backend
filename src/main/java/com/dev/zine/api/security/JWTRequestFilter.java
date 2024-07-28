@@ -53,7 +53,7 @@ public class JWTRequestFilter extends OncePerRequestFilter {
                 if (opUser.isPresent()) {
                     User user = opUser.get();
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user,
-                            null, new ArrayList());
+                            null, new ArrayList()); //principal, password, list of roles
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }

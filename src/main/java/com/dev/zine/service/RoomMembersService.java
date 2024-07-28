@@ -2,11 +2,12 @@ package com.dev.zine.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
@@ -19,6 +20,7 @@ import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
 
+import org.springframework.http.HttpStatus;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -27,12 +29,38 @@ public class RoomMembersService {
     private RoomsDAO roomDAO;
     private RoomMembersDAO roomMembersDAO;
     private UserDAO userDAO;
+    private RoomService roomService;
 
     @Autowired
-    public RoomMembersService(RoomsDAO roomsDAO, RoomMembersDAO roomMembersDAO, UserDAO userDAO) {
+    public RoomMembersService(RoomsDAO roomsDAO, RoomMembersDAO roomMembersDAO, UserDAO userDAO, RoomService roomService) {
         this.roomDAO = roomsDAO;
         this.roomMembersDAO = roomMembersDAO;
         this.userDAO = userDAO;
+        this.roomService = roomService;
+    }
+    public ResponseEntity<List<Rooms>> getRoomsByEmail(String email) {
+        try{
+            Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
+            if(opUser.isPresent()){
+                User user = opUser.get();
+                List<RoomMembers> l = roomMembersDAO.findByUser(user);
+                List<Rooms> resRooms = new ArrayList<>();
+                for(RoomMembers rm: l){
+                    Optional<Rooms> opRoom = roomService.getRoomInfo(rm.getRoom().getId());
+                    if(opRoom.isPresent()){
+                        Rooms room = opRoom.get();
+                        resRooms.add(room);
+                    }
+                }
+                return ResponseEntity.ok().body(resRooms);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        }
+        catch(Exception e){
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     public String addMembers(MembersList addMembersBody) throws RoomDoesNotExist {
@@ -46,7 +74,7 @@ public class RoomMembersService {
             List<RoomMembers> roomMembers = new ArrayList<>();
 
             for (Members memberPair : members) {
-                String memberId = memberPair.getUserId();
+                String memberId = memberPair.getUserEmail();
                 String role = memberPair.getRole();
                 User member = userDAO.findByEmailIgnoreCase(memberId).orElse(null);
 
