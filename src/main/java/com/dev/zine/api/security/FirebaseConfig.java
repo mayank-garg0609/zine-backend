@@ -27,7 +27,7 @@ public class FirebaseConfig {
     public FirebaseMessaging firebaseMessaging() throws IOException {
         String absolutePath;
         System.out.println(env);
-        if(env == "production"){
+        if(env.equals("production")) {
             absolutePath = "/app/zine-firebase-admin.json";
         } else{
             String relativePath = "src/main/resources/zine-firebase-admin.json";
@@ -49,7 +49,6 @@ public class FirebaseConfig {
         }
 
         return FirebaseMessaging.getInstance(app);
-
     }
 
 }
