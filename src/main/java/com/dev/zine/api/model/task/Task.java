@@ -1,5 +1,6 @@
 package com.dev.zine.api.model.task;
 
+import com.dev.zine.model.Rooms;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,5 +24,5 @@ public class Task {
     private String type;
     private String recruitment;
     private boolean visible;
-
+    private Rooms roomId;
 }

@@ -11,7 +11,7 @@ import java.util.Date;
 @Data
 
 @NoArgsConstructor
-public class TaskEntity {
+public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -53,4 +53,8 @@ public class TaskEntity {
 
     @Column(name = "visible")
     private boolean visible;
+
+    @OneToOne
+    @JoinColumn(name="roomId")
+    private Rooms roomId;
 }
