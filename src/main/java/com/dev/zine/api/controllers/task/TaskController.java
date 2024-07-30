@@ -8,35 +8,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/tasks")
 public class TaskController {
 
     //dependency Injection
     @Autowired
     TaskService taskService;
 
-    @GetMapping("tasks")
+    @GetMapping("/get")
     public List<Task> getAllTasks() {
         return taskService.readTasks();
     }
 
-    @GetMapping("tasks/{id}")
+    @GetMapping("/get/{id}")
     public Task getAllTaskById(@PathVariable Long id) {
         return taskService.readTask(id);
     }
 
-    @PostMapping("tasks")
+    @PostMapping("/create")
     public String createTask(@RequestBody Task task) {
         return taskService.createTask(task);
     }
 
-    @DeleteMapping("tasks/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteTask(@PathVariable Long id) {
         if(taskService.deleteTask(id))
             return "Task deleted successfully";
         return "Task not found";
     }
 
-    @PutMapping("tasks/{id}")
+    @PostMapping("/update/{id}")
     public String updateTask(@PathVariable Long id, @RequestBody Task task) {
         return taskService.updateTask(id, task);
     }

@@ -1,8 +1,7 @@
 package com.dev.zine.service.ServiceTask;
 
-import com.dev.zine.api.model.task.Task;
-import com.dev.zine.model.TaskEntity;
-import com.dev.zine.dao.TaskRepository;
+import com.dev.zine.model.Task;
+import com.dev.zine.dao.TaskDAO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,46 +12,45 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     @Autowired
-    private TaskRepository taskRepository;
-
-    //List<Task> employees = new ArrayList<>();
+    private TaskDAO taskDAO;
 
     @Override
-    public String createTask(Task task) {
-        TaskEntity taskEntity = new TaskEntity();
+    public String createTask(com.dev.zine.api.model.task.Task task) {
+        Task taskEntity = new Task();
         BeanUtils.copyProperties(task, taskEntity);
-        taskRepository.save(taskEntity);
+        taskDAO.save(taskEntity);
         return "Task Saved successfully";
     }
 
     @Override
-    public Task readTask(Long id) {
-        TaskEntity tas = taskRepository.findById(id).get();
-        Task task = new Task();
-        BeanUtils.copyProperties(tas, task);
-        return task;
+    public com.dev.zine.api.model.task.Task readTask(Long id) {
+            Task tas = taskDAO.findById(id).get();
+                com.dev.zine.api.model.task.Task task = new com.dev.zine.api.model.task.Task();
+                BeanUtils.copyProperties(tas, task);
+                return task;
     }
 
     @Override
-    public List<Task> readTasks() {
-        List<TaskEntity> tasksList = taskRepository.findAll();
-        List<Task> tasks = new ArrayList<>();
-        for (TaskEntity taskEntity : tasksList) {
+    public List<com.dev.zine.api.model.task.Task> readTasks() {
+        List<Task> tasksList = taskDAO.findAll();
+        List<com.dev.zine.api.model.task.Task> tasks = new ArrayList<>();
+        for (Task task : tasksList) {
 
-            Task tas = new Task();
-            tas.setId(taskEntity.getId());
-            tas.setCreatedDate(taskEntity.getCreatedDate());
-            tas.setTitle(taskEntity.getTitle());
-            tas.setSubtitle(taskEntity.getSubtitle());
-            tas.setDescription(taskEntity.getDescription());
-            tas.setDueDate(taskEntity.getDueDate());
-            tas.setPs_link(taskEntity.getPs_Link());
-            tas.setSubmission_link(taskEntity.getSubmission_link());
-            tas.setRoom_name(taskEntity.getRoom_name());
-            tas.setCreate_room(taskEntity.isCreate_room());
-            tas.setType(taskEntity.getType());
-            tas.setRecruitment(taskEntity.getRecruitment());
-            tas.setVisible(taskEntity.isVisible());
+            com.dev.zine.api.model.task.Task tas = new com.dev.zine.api.model.task.Task();
+            tas.setId(task.getId());
+            tas.setCreatedDate(task.getCreatedDate());
+            tas.setTitle(task.getTitle());
+            tas.setSubtitle(task.getSubtitle());
+            tas.setDescription(task.getDescription());
+            tas.setDueDate(task.getDueDate());
+            tas.setPs_link(task.getPs_Link());
+            tas.setSubmission_link(task.getSubmission_link());
+            tas.setRoom_name(task.getRoom_name());
+            tas.setCreate_room(task.isCreate_room());
+            tas.setType(task.getType());
+            tas.setRecruitment(task.getRecruitment());
+            tas.setVisible(task.isVisible());
+            tas.setRoomId(task.getRoomId());
 
             tasks.add(tas);
         }
@@ -61,14 +59,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public boolean deleteTask(Long id) {
-        //TaskEntity tas = repository.findById(id).get();
-        taskRepository.deleteById(id);
+        //Task tas = repository.findById(id).get();
+        taskDAO.deleteById(id);
         return true;
     }
 
     @Override
-    public String updateTask(long id, Task task) {
-        TaskEntity existingTask = taskRepository.findById(id).get();
+    public String updateTask(long id, com.dev.zine.api.model.task.Task task) {
+        Task existingTask = taskDAO.findById(id).get();
         existingTask.setTitle(task.getTitle());
         existingTask.setSubtitle(task.getSubtitle());
         existingTask.setDescription(task.getDescription());
@@ -81,7 +79,7 @@ public class TaskServiceImpl implements TaskService {
         existingTask.setRecruitment(task.getRecruitment());
         existingTask.setVisible(task.isVisible());
 
-        taskRepository.save(existingTask);
+        taskDAO.save(existingTask);
 
         return "Task Updated";
     }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.zine.api.model.Room.RoomBody;
+import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.service.RoomService;
@@ -54,11 +54,11 @@ public class RoomController {
         }
     }
 
-    @PostMapping("/delete")
+    @PostMapping(value = "/delete")
     public ResponseEntity delete(@RequestBody List<Long> roomId) {
         System.out.println(roomId);
         try {
-            roomService.deleteRooms(roomId);
+                roomService.deleteRooms(roomId);
 
             return ResponseEntity.ok().body("Rooms Deleted " + roomId.toString());
 
