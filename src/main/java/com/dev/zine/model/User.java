@@ -30,7 +30,8 @@ public class User {
     private String password;
 
     @Column(name = "type", columnDefinition = "varchar(10) default 'user'")
-    private String type="user";
+
+    private String type = "user";
 
     @Column(name = "pushToken")
     private String pushToken;

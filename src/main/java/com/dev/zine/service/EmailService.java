@@ -39,7 +39,7 @@ public class EmailService {
         message.setTo(verificationToken.getUser().getEmail());
         message.setSubject("Verify your email to active your account.");
         message.setText("Please follow the link below to verify your email to active your account.\n" +
-                url + "/auth/verify?token=" + verificationToken.getToken());
+                url + "auth/verify?token=" + verificationToken.getToken());
         try {
             javaMailSender.send(message);
         } catch (MailException ex) {
@@ -53,7 +53,8 @@ public class EmailService {
         message.setSubject("Your password reset request link.");
         message.setText("You requested a password reset on our website. Please " +
                 "find the link below to be able to reset your password.\n" + url +
-                "/auth/reset?token=" + token);
+                // "/auth/reset?token=" + token);
+                "reset-password?token=" + token);
         try {
             javaMailSender.send(message);
         } catch (MailException ex) {

@@ -30,7 +30,7 @@ public class Message {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "conentUrl")
+    @Column(name = "contentUrl")
     private String contentUrl;
 
     @Column(name = "timestamp")
