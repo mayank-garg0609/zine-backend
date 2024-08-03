@@ -1,44 +1,75 @@
 package com.dev.zine.api.controllers.task;
 
-import com.dev.zine.api.model.task.Task;
-import com.dev.zine.service.ServiceTask.TaskService;
+import com.dev.zine.api.model.task.TaskCreateBody;
+import com.dev.zine.api.model.task.TaskInstanceCreateBody;
+import com.dev.zine.api.model.task.UserTaskAssignBody;
+import com.dev.zine.exceptions.TaskInstanceNotFound;
+import com.dev.zine.exceptions.TaskNotFoundException;
+import com.dev.zine.model.Task;
+import com.dev.zine.model.TaskInstance;
+import com.dev.zine.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-
-    //dependency Injection
     @Autowired
     TaskService taskService;
 
-    @GetMapping("/get")
-    public List<Task> getAllTasks() {
-        return taskService.readTasks();
+    @GetMapping("/get-all")
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> allTasks = taskService.getAllTasks();
+        return ResponseEntity.ok().body(allTasks);
     }
 
-    @GetMapping("/get/{id}")
-    public Task getAllTaskById(@PathVariable Long id) {
-        return taskService.readTask(id);
+    @GetMapping("/get")
+    public Task getTaskById(@RequestParam Long taskId) throws TaskNotFoundException{
+        return taskService.getTask(taskId);
     }
 
     @PostMapping("/create")
-    public String createTask(@RequestBody Task task) {
-        return taskService.createTask(task);
+    public ResponseEntity<Task> createTask(@RequestBody TaskCreateBody task) {
+        Task createdTask = taskService.createTask(task);
+        return ResponseEntity.ok().body(createdTask);
     }
 
-    @PostMapping("/delete/{id}")
-    public String deleteTask(@PathVariable Long id) {
-        if(taskService.deleteTask(id))
-            return "Task deleted successfully";
-        return "Task not found";
+    @PostMapping("/delete")
+    public ResponseEntity<Map<String, String>> deleteTask(@RequestBody List<Long> id) {
+        if(taskService.deleteTask(id)){
+            return ResponseEntity.ok().body(Map.of("status","success","message","Task "+id+" deleted successfully"));
+        }
+        return ResponseEntity.ok().body(Map.of("status","fail","message","Task "+id+" not find"));
     }
 
-    @PostMapping("/update/{id}")
-    public String updateTask(@PathVariable Long id, @RequestBody Task task) {
+    @PostMapping("/update")
+    public Task updateTask(@RequestParam Long id, @RequestBody TaskCreateBody task) throws TaskNotFoundException{
         return taskService.updateTask(id, task);
     }
+
+    @PostMapping("/create-instance")
+    public TaskInstance createInstance(@RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
+        return taskService.createInstance(body);
+    }
+
+    @PostMapping("/assign-task")
+    public ResponseEntity<Map<String, String>> assignToTask(@RequestBody UserTaskAssignBody body) throws TaskInstanceNotFound {
+        try{
+            Map<String, String> res = taskService.assignUser(body);
+            return ResponseEntity.ok().body(res);
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        
+    }
+    
 }
