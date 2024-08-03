@@ -1,28 +1,25 @@
 package com.dev.zine.api.model.task;
 
-import com.dev.zine.model.Rooms;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Task {
+import com.fasterxml.jackson.annotation.JsonFormat;
 
-    private Long id;
+@Data
+@NoArgsConstructor
+public class TaskCreateBody {
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date createdDate;
     private String title;
     private String subtitle;
     private String description;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dueDate;
-    private String ps_link;
-    private String submission_link;
-    private String room_name;
-    private boolean create_room;
+    private String psLink;
+    private String submissionLink;
     private String type;
     private String recruitment;
     private boolean visible;
-    private Rooms roomId;
 }
