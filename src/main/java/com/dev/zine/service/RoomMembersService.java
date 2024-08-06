@@ -94,7 +94,7 @@ public class RoomMembersService {
             if (message.equals("")) {
                 return "All users added to room " + room.getName();
             } else {
-                return message + " :Users do not exist";
+                return message;
             }
         } else {
 

@@ -172,4 +172,24 @@ public class TaskService {
         
     }
 
+    public List<TaskInstance> getAllInstances(){
+        return taskInstanceDAO.findAll();
+    }
+
+    public List<User> getAssigned(Long taskInstanceId){
+        TaskInstance instance = taskInstanceDAO.findById(taskInstanceId).orElse(null);
+        List<User> users = new ArrayList<>();
+        if(instance != null){
+            List<UserTaskAssigned> assigned = userTaskAssignedDAO.findByTaskInstanceId(instance);
+            for(UserTaskAssigned assignee: assigned ){
+                User user = userDAO.findById(assignee.getUserId().getId()).orElse(null);
+                if(user != null){
+                    users.add(user);
+                }
+            }
+        }
+        System.out.println("reached outside");
+        return users;
+    }
+
 }
