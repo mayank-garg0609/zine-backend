@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.zine.api.model.Room.RoomBody;
+import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
@@ -37,8 +37,8 @@ public class RoomController {
     public ResponseEntity createRoom(@Valid @RequestBody RoomBody room) {
         System.out.println(room);
         try {
-            roomService.createRoom(room);
-            return ResponseEntity.ok().build();
+            Rooms newRoom = roomService.createRoom(room);
+            return ResponseEntity.ok().body(newRoom);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -59,6 +59,16 @@ public class RoomController {
         }
     }
 
+    @GetMapping("/get-all")
+    public ResponseEntity<List<Rooms>> getRoom() {
+        try{
+            List<Rooms> rooms = roomService.getAllRooms();
+            return ResponseEntity.ok().body(rooms);
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
     @GetMapping("/user")
     public ResponseEntity<List<Rooms>> getRoomsByUser(@RequestParam String email) {
         try{
@@ -70,10 +80,11 @@ public class RoomController {
     
 
     @PostMapping("/delete")
+
     public ResponseEntity delete(@RequestBody List<Long> roomId) {
         System.out.println(roomId);
         try {
-            roomService.deleteRooms(roomId);
+                roomService.deleteRooms(roomId);
 
             return ResponseEntity.ok().body("Rooms Deleted " + roomId.toString());
 
