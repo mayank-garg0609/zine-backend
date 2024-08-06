@@ -37,8 +37,8 @@ public class RoomController {
     public ResponseEntity createRoom(@Valid @RequestBody RoomBody room) {
         System.out.println(room);
         try {
-            roomService.createRoom(room);
-            return ResponseEntity.ok().build();
+            Rooms newRoom = roomService.createRoom(room);
+            return ResponseEntity.ok().body(newRoom);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -55,6 +55,16 @@ public class RoomController {
                 return ResponseEntity.notFound().build();
 
         } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<List<Rooms>> getRoom() {
+        try{
+            List<Rooms> rooms = roomService.getAllRooms();
+            return ResponseEntity.ok().body(rooms);
+        } catch(Exception e){
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }

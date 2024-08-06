@@ -25,7 +25,6 @@ public class RoomService {
     }
 
     public Rooms createRoom(RoomBody room) {
-        System.out.println("tried to accessss");
         Rooms newRoom = new Rooms();
 
         newRoom.setName(room.getName());
@@ -44,6 +43,11 @@ public class RoomService {
 
     }
 
+    public List<Rooms> getAllRooms() {
+
+        return roomDAO.findAll();
+
+    }
     @Transactional
     public void deleteRooms(List<Long> ids) {
         roomDAO.deleteAllById(ids);

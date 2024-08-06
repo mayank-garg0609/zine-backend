@@ -7,17 +7,15 @@ import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskInstance;
+import com.dev.zine.model.User;
 import com.dev.zine.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -48,7 +46,7 @@ public class TaskController {
         if(taskService.deleteTask(id)){
             return ResponseEntity.ok().body(Map.of("status","success","message","Task "+id+" deleted successfully"));
         }
-        return ResponseEntity.ok().body(Map.of("status","fail","message","Task "+id+" not find"));
+        return ResponseEntity.ok().body(Map.of("status","fail","message","Task "+id+" not found"));
     }
 
     @PostMapping("/update")
@@ -59,6 +57,21 @@ public class TaskController {
     @PostMapping("/create-instance")
     public TaskInstance createInstance(@RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
         return taskService.createInstance(body);
+    }
+
+    @GetMapping("/get-all-instance")
+    public List<TaskInstance> getAllInstances() {
+        return taskService.getAllInstances();
+    }
+
+    @GetMapping("/get-assigned")
+    public List<User> getAssigned(@RequestParam Long id) {
+        try{
+            return taskService.getAssigned(id);
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+            throw new RuntimeException("couldn't get assigned");
+        }
     }
 
     @PostMapping("/assign-task")
