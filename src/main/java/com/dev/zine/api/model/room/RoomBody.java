@@ -1,4 +1,4 @@
-package com.dev.zine.api.model.Room;
+package com.dev.zine.api.model.room;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

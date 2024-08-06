@@ -76,12 +76,15 @@ public class UserService {
         verificationToken.setToken(jwtService.generateVerificationJWT(user));
         verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis()));
         verificationToken.setUser(user);
+
         user.getVerificationTokens().add(verificationToken); //adds token to the list
         return verificationToken;
     }
 
     @Transactional
     public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
+
+
         Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exits
         if (opUser.isPresent()) {
             User user = opUser.get();
@@ -95,6 +98,7 @@ public class UserService {
                                     .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000))); 
                                     // checks if tokens list is empty 
                                     //or the latest token is older than 1hr
+
                     if (resend) {
                         VerificationToken verificationToken = createVerificationToken(user);
                         verificationTokenDAO.save(verificationToken);
@@ -145,4 +149,5 @@ public class UserService {
             userDAO.save(user);
         }
     }
+
 }
