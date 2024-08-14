@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.mentors.MentorUpdateBody;
-import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.TaskDAO;
 import com.dev.zine.dao.TaskInstanceDAO;
@@ -34,15 +33,13 @@ public class MentorService {
     private RoomMembersDAO roomMembersDAO;
     @Autowired
     private TaskInstanceDAO taskInstanceDAO;
-    @Autowired
-    private RoomMembersService roomMembersService;
 
     public Map<String, String> assignMentors(Task task, List<String> mentorIds){
         String message = "";
         List<TaskMentor> mentorsList = new ArrayList<>();
         for(String mentorId: mentorIds){
             User user = userDAO.findByEmailIgnoreCase(mentorId).orElse(null);
-            if(user != null){
+            if(user != null && !taskMentorDAO.existsByMentorAndTaskId(user, task)){
                 TaskMentor newMentor = new TaskMentor();
                 newMentor.setMentor(user);
                 newMentor.setTaskId(task);
@@ -84,11 +81,13 @@ public class MentorService {
                 for(TaskInstance instance: instances){
                     Rooms room = instance.getRoomId();
                     for(User user: users){
-                        RoomMembers member = new RoomMembers();
-                        member.setRole("mentor");
-                        member.setRoom(room);
-                        member.setUser(user);
-                        roomMembersDAO.save(member);
+                        if(!roomMembersDAO.existsByUserAndRoom(user, room)){
+                            RoomMembers member = new RoomMembers();
+                            member.setRole("mentor");
+                            member.setRoom(room);
+                            member.setUser(user);
+                            roomMembersDAO.save(member);
+                        }
                     }
                 }
             } else{
