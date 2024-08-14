@@ -10,27 +10,25 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "roomMembers",
+@Table(name = "task_mentors", 
     uniqueConstraints = 
-        {@UniqueConstraint(columnNames ={"room_id", "user_id", "role"})}
-)
+        {@UniqueConstraint(columnNames ={"task_id", "mentor"})})
 @Data
-public class RoomMembers {
+@NoArgsConstructor
+public class TaskMentor {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "role")
-    private String role;
+    @ManyToOne
+    @JoinColumn(name = "task_id")
+    private Task taskId;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
-    private Rooms room;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
+    @JoinColumn(name = "mentor")
+    private User mentor;
 }

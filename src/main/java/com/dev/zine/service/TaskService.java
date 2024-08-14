@@ -42,6 +42,8 @@ public class TaskService {
     private RoomMembersDAO roomMembersDAO;
     @Autowired
     private UserTaskAssignedDAO userTaskAssignedDAO;
+    @Autowired
+    private MentorService mentorService;
 
     public Task createTask(TaskCreateBody task){
         Task newTask = new Task();
@@ -56,6 +58,8 @@ public class TaskService {
         newTask.setType(task.getType());
         newTask.setVisible(task.isVisible());
         taskDAO.save(newTask);
+        if(task.getMentorIds() != null)
+            mentorService.assignMentors(newTask, task.getMentorIds());
         return newTask;
     }
 
@@ -119,13 +123,43 @@ public class TaskService {
                 newInstance.setTaskId(task);
                 newInstance.setType(body.getType());
                 taskInstanceDAO.save(newInstance);
+                mentorService.addMentorsToRoom(task, room);
                 return newInstance;
             } else{
                 throw new TaskNotFoundException();
             }
+        } catch(TaskNotFoundException e){
+            throw e;
+        }
+    }
+
+    public TaskInstance updateInstance(TaskInstanceCreateBody update, Long taskInstance) throws TaskInstanceNotFound {
+        try{
+            TaskInstance existingInstance = taskInstanceDAO.findById(taskInstance).orElse(null);
+            if(existingInstance != null){
+                try{
+                    NullAwareBeanUtilsBean beanUtilsBean = new NullAwareBeanUtilsBean();
+                    beanUtilsBean.copyProperties(existingInstance, update);
+                    taskInstanceDAO.save(existingInstance);
+                    return existingInstance;
+                } catch(IllegalAccessException | InvocationTargetException e){
+                    return existingInstance;
+                }
+            } else{
+                throw new TaskInstanceNotFound("Task instance "+taskInstance.toString()+ " not found.");
+            }
+        } catch(TaskInstanceNotFound e){
+            throw e;
+        }
+    }
+
+    public boolean deleteInstance(List<Long> taskInstances){
+        try{
+            taskInstanceDAO.deleteAllById(taskInstances);
+            return true;
         } catch(Exception e){
-            System.out.println(e);
-            throw new RuntimeException("Error creating task instance");
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 
@@ -164,7 +198,7 @@ public class TaskService {
                 }
             }
              else{
-                throw new TaskInstanceNotFound();
+                throw new TaskInstanceNotFound("Task instance "+assign.getTaskInstanceId().toString()+ " not found.");
             }
         } catch(Exception e){
             throw new RuntimeException("Error assigning task");

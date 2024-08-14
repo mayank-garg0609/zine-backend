@@ -85,7 +85,7 @@ public class UserService {
     public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
 
 
-        Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exits
+        Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exists
         if (opUser.isPresent()) {
             User user = opUser.get();
             if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { //verify password
