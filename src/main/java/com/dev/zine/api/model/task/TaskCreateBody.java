@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -22,4 +23,5 @@ public class TaskCreateBody {
     private String type;
     private String recruitment;
     private boolean visible;
+    private List<String> mentorIds;
 }

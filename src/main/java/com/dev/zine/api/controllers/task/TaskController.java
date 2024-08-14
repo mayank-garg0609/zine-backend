@@ -1,5 +1,6 @@
 package com.dev.zine.api.controllers.task;
 
+import com.dev.zine.api.model.task.MentorAssignBody;
 import com.dev.zine.api.model.task.TaskCreateBody;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
 import com.dev.zine.api.model.task.UserTaskAssignBody;
@@ -16,6 +17,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
 
 
 @RestController
@@ -54,12 +59,39 @@ public class TaskController {
         return taskService.updateTask(id, task);
     }
 
-    @PostMapping("/create-instance")
-    public TaskInstance createInstance(@RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
-        return taskService.createInstance(body);
+    @PostMapping("/instance/create")
+    public ResponseEntity<?> createInstance(@RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
+        try{
+            TaskInstance taskInstance = taskService.createInstance(body);
+            return ResponseEntity.ok().body(taskInstance);
+        } catch(TaskNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task not found");
+        }
     }
 
-    @GetMapping("/get-all-instance")
+    @PostMapping("/instance/update")
+    public ResponseEntity<?> updateInstance(@RequestBody TaskInstanceCreateBody body, @RequestParam Long instanceId) throws TaskInstanceNotFound{
+        try{
+            TaskInstance instance = taskService.updateInstance(body, instanceId);
+            return ResponseEntity.ok().body(instance);
+        } catch(TaskInstanceNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+        
+    }
+
+    @PostMapping("/instance/delete")
+    public ResponseEntity<?> deleteInstance(@RequestBody List<Long> ids) {
+        try{
+            taskService.deleteInstance(ids);
+            return ResponseEntity.ok().build();
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+        
+    }
+    
+    @GetMapping("/instance")
     public List<TaskInstance> getAllInstances() {
         return taskService.getAllInstances();
     }
@@ -82,6 +114,10 @@ public class TaskController {
         } catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    @PostMapping("/assign-mentors")
+    public void assignMentors(@RequestBody MentorAssignBody mentorAssignBody) {
         
     }
     
