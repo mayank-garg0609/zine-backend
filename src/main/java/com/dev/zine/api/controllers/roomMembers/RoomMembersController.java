@@ -11,11 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
 import com.dev.zine.exceptions.RoomDoesNotExist;
-
+import com.dev.zine.exceptions.RoomMemberNotFound;
+import com.dev.zine.model.RoomMembers;
 import com.dev.zine.service.RoomMembersService;
 
 import jakarta.validation.Valid;
@@ -27,7 +29,7 @@ public class RoomMembersController {
 
     public RoomMembersController(RoomMembersService roomMembersService) {
         this.roomMembersService = roomMembersService;
-    }
+    }    
 
     @PostMapping("/add")
     public ResponseEntity add(@Valid @RequestBody MembersList addMembersBody) {
@@ -44,8 +46,7 @@ public class RoomMembersController {
     }
 
     @PostMapping("/remove")
-    public ResponseEntity remove(@Valid @RequestBody RemoveMembersList removeMembersBody) {
-        System.out.println("remove Members form room");
+    public ResponseEntity<?> remove(@Valid @RequestBody RemoveMembersList removeMembersBody) {
         System.out.println(removeMembersBody);
         try {
             String message = roomMembersService.removeMembers(removeMembersBody);
@@ -72,4 +73,17 @@ public class RoomMembersController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateMember(@RequestBody MemberRoleUpdate update) throws RoomDoesNotExist, RoomMemberNotFound{
+        try{
+            roomMembersService.updateMemberRole(update);
+            return ResponseEntity.ok().build();
+        } catch(RoomDoesNotExist e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch(RoomMemberNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    
 }
