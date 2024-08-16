@@ -8,11 +8,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "role_to_user")
+@Table(name = "user_to_role", uniqueConstraints = {@UniqueConstraint(columnNames = {"id", "role"})})
 @Data
 @NoArgsConstructor
 public class UserToRole {
