@@ -8,6 +8,7 @@ import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RoomMembersDAO extends ListCrudRepository<RoomMembers, Long> {
 
@@ -18,5 +19,7 @@ public interface RoomMembersDAO extends ListCrudRepository<RoomMembers, Long> {
     boolean existsByUserAndRoom(User user, Rooms room);
 
     void deleteByUserAndRoom(User user, Rooms room);
+
+    Optional<RoomMembers> findByRoomAndUser(Rooms room, User user);
 
 }
