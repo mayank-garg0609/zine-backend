@@ -1,9 +1,9 @@
 package com.dev.zine.service;
 
 import com.dev.zine.api.model.role.RoleAssignBody;
-import com.dev.zine.api.model.role.RoleAssignResponse;
 import com.dev.zine.api.model.role.RoleBody;
-import com.dev.zine.api.model.role.UserByRoleRes;
+import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserToRoleDAO;
@@ -76,7 +76,7 @@ public class RoleService {
         }
     }
 
-    public RoleAssignResponse assignRole(RoleAssignBody body) throws RoleNotFound{
+    public AssignResponse assignRole(RoleAssignBody body) throws RoleNotFound{
         Role role = roleDAO.findById(body.getRoleId()).orElseThrow(RoleNotFound::new);
         List<UserToRole> list = new ArrayList<>();
         List<String> invalidEmails = new ArrayList<>();
@@ -101,19 +101,19 @@ public class RoleService {
         } 
 
         if(invalidEmails.isEmpty() && alreadyAssignedUser.isEmpty()){
-            return new RoleAssignResponse("success");
+            return new AssignResponse("success");
         } else{
-            return new RoleAssignResponse("fail", invalidEmails, alreadyAssignedUser);
+            return new AssignResponse("fail", invalidEmails, alreadyAssignedUser);
         }
     }
 
-    public List<UserByRoleRes> getUsersByRole(Long roleId) throws RoleNotFound{
+    public List<UserResponseBody> getUsersByRole(Long roleId) throws RoleNotFound{
         Role role = roleDAO.findById(roleId).orElseThrow(RoleNotFound::new);
         List<UserToRole> userRoles = userToRoleDAO.findByRole(role);
         return userRoles.stream()
                 .map(userRole -> {
                     User user = userRole.getUser();
-                    UserByRoleRes body = new UserByRoleRes();
+                    UserResponseBody body = new UserResponseBody();
                     body.setEmail(user.getEmail());
                     body.setName(user.getName());
                     return body;

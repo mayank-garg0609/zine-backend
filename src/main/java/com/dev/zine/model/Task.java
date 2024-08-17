@@ -3,7 +3,12 @@ package com.dev.zine.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "tasks")
@@ -36,12 +41,6 @@ public class Task {
     @Column(name = "submission_link")
     private String submissionLink;
 
-    // @Column(name = "room_name")
-    // private String roomName;
-
-    // @Column(name = "create_room" , columnDefinition = "boolean default false")
-    // private boolean createRoom;
-
     @Column(name = "type")
     private String type;
 
@@ -51,7 +50,11 @@ public class Task {
     @Column(name = "visible")
     private boolean visible;
 
-    // @OneToOne
-    // @JoinColumn(name="roomId")
-    // private Rooms roomId;
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskInstance> taskInstances = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskMentor> taskMentors = new ArrayList<>();
 }

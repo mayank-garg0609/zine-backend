@@ -5,7 +5,6 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class MentorUpdateBody {
-    private Long taskId;
-    private List<String> mentorIds;
+public class MentorAssignBody {
+    private List<String> mentorEmails;
 }

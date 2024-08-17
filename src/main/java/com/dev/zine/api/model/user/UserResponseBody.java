@@ -1,9 +1,9 @@
-package com.dev.zine.api.model.role;
+package com.dev.zine.api.model.user;
 
 import lombok.Data;
 
 @Data
-public class UserByRoleRes {
+public class UserResponseBody {
     private String name;
     private String email;
 }
