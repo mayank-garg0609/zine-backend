@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
+import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.Members;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.RoomMemberNotFound;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
@@ -128,8 +130,27 @@ public class RoomMembersService {
 
     }
 
-    public void updateMembers() {
-
+    public void updateMemberRole(MemberRoleUpdate update) throws RoomDoesNotExist, RoomMemberNotFound{
+        try{
+            Rooms room = roomDAO.findById(update.getRoom()).orElse(null);
+            User user = userDAO.findByEmailIgnoreCase(update.getMemberEmail()).orElse(null);
+    
+            if(room != null && user != null){
+                RoomMembers existing = roomMembersDAO.findByRoomAndUser(room, user).orElse(null);
+                if(existing != null){
+                    existing.setRole(update.getRole());
+                    roomMembersDAO.save(existing);
+                } else{
+                    throw new RoomMemberNotFound();
+                }
+            } else{
+                throw new RoomDoesNotExist();
+            }
+        } catch(RoomMemberNotFound e){
+            throw e;
+        } catch(RoomDoesNotExist e){
+            throw e;
+        }
     }
 
     public List<MembersResponse> getMemebers(Long roomId) throws RoomDoesNotExist {

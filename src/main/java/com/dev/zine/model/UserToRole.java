@@ -10,26 +10,23 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "roomMembers",
-    uniqueConstraints = 
-        {@UniqueConstraint(columnNames ={"room_id", "user_id", "role"})}
-)
+@Table(name = "user_to_role", uniqueConstraints = {@UniqueConstraint(columnNames = {"id", "role"})})
 @Data
-public class RoomMembers {
+@NoArgsConstructor
+public class UserToRole {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @Column(name = "role")
-    private String role;
+    @Column(name = "user_role_id", nullable = false)
+    private Long userRoleId;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
-    private Rooms room;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name="id")
     private User user;
+    
+    @ManyToOne
+    @JoinColumn(name="role")
+    private Role role;
 }

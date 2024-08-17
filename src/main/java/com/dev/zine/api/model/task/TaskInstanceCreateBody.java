@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TaskInstanceCreateBody {
     private String type;
-    private Long taskId;
     private String roomName;
     private String dpUrl;
     private String description;

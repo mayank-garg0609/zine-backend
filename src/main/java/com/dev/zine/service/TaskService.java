@@ -3,8 +3,8 @@ package com.dev.zine.service;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,8 @@ import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.api.model.task.TaskCreateBody;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
 import com.dev.zine.api.model.task.UserTaskAssignBody;
+import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.model.UserTaskAssigned;
 
 @Service
@@ -42,6 +44,8 @@ public class TaskService {
     private RoomMembersDAO roomMembersDAO;
     @Autowired
     private UserTaskAssignedDAO userTaskAssignedDAO;
+    @Autowired
+    private MentorService mentorService;
 
     public Task createTask(TaskCreateBody task){
         Task newTask = new Task();
@@ -56,6 +60,8 @@ public class TaskService {
         newTask.setType(task.getType());
         newTask.setVisible(task.isVisible());
         taskDAO.save(newTask);
+        // if(task.getMentorIds() != null)
+        //     mentorService.assignMentors(newTask, task.getMentorIds());
         return newTask;
     }
 
@@ -65,7 +71,7 @@ public class TaskService {
             if (task.isPresent()) {
                 return task.get();
             } else {
-                throw new TaskNotFoundException();
+                throw new TaskNotFoundException(id);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error while retrieving task", e);
@@ -99,13 +105,13 @@ public class TaskService {
                 return existingRoom;
             }
         } else{
-            throw new TaskNotFoundException();
+            throw new TaskNotFoundException(id);
         }
     }
     
-    public TaskInstance createInstance(TaskInstanceCreateBody body) throws TaskNotFoundException {
+    public TaskInstance createInstance(Long taskId, TaskInstanceCreateBody body) throws TaskNotFoundException {
         try {
-            Optional<Task> opTask = taskDAO.findById(body.getTaskId());
+            Optional<Task> opTask = taskDAO.findById(taskId);
             if(opTask.isPresent()){
                 Task task = opTask.get();
                 RoomBody newRoom = new RoomBody();
@@ -119,77 +125,102 @@ public class TaskService {
                 newInstance.setTaskId(task);
                 newInstance.setType(body.getType());
                 taskInstanceDAO.save(newInstance);
+                mentorService.addMentorsToRoom(task, room);
                 return newInstance;
             } else{
-                throw new TaskNotFoundException();
+                throw new TaskNotFoundException(taskId);
             }
-        } catch(Exception e){
-            System.out.println(e);
-            throw new RuntimeException("Error creating task instance");
+        } catch(TaskNotFoundException e){
+            throw e;
         }
     }
 
-    public Map<String, String> assignUser(UserTaskAssignBody assign) throws TaskInstanceNotFound{
+    public TaskInstance updateInstance(TaskInstanceCreateBody update, Long taskInstance) throws TaskInstanceNotFound {
         try{
-            Optional<TaskInstance> opTaskInstance = taskInstanceDAO.findById(assign.getTaskInstanceId());
-            if(opTaskInstance.isPresent()){
-                TaskInstance taskInstance = opTaskInstance.get();
-                Rooms room = taskInstance.getRoomId();
-                List<RoomMembers> roomMembers = new ArrayList<>();
-                List<UserTaskAssigned> assignedUsers = new ArrayList<>();
-                String message = "";
-                for(Long userId: assign.getUserIds()){
-                    User user = userDAO.findById(userId).orElse(null);
-                    if(user != null){
-                        RoomMembers roomMember = new RoomMembers();
-                        roomMember.setRoom(room);
-                        roomMember.setUser(user);
-                        roomMember.setRole("user");
-                        roomMembers.add(roomMember);
+            TaskInstance existingInstance = taskInstanceDAO.findById(taskInstance).orElse(null);
+            if(existingInstance != null){
+                try{
+                    NullAwareBeanUtilsBean beanUtilsBean = new NullAwareBeanUtilsBean();
+                    beanUtilsBean.copyProperties(existingInstance, update);
+                    taskInstanceDAO.save(existingInstance);
+                    return existingInstance;
+                } catch(IllegalAccessException | InvocationTargetException e){
+                    return existingInstance;
+                }
+            } else{
+                throw new TaskInstanceNotFound(taskInstance);
+            }
+        } catch(TaskInstanceNotFound e){
+            throw e;
+        }
+    }
 
-                        UserTaskAssigned assignedUser = new UserTaskAssigned();
-                        assignedUser.setTaskInstanceId(taskInstance);
-                        assignedUser.setUserId(user);
-                        assignedUsers.add(assignedUser);
-                    } else{
-                        message += userId.toString() + " ";
-                    }
-                }
-                roomMembersDAO.saveAll(roomMembers);
-                userTaskAssignedDAO.saveAll(assignedUsers);
-                if (message.equals("")) {
-                    return Map.of("message","All users added to room " + room.getName(),"status","success");
-                } else {
-                    return Map.of("message",message + " :Users do not exist","status","fail");
-                }
-            }
-             else{
-                throw new TaskInstanceNotFound();
-            }
+    public boolean deleteInstance(List<Long> taskInstances){
+        try{
+            taskInstanceDAO.deleteAllById(taskInstances);
+            return true;
         } catch(Exception e){
-            throw new RuntimeException("Error assigning task");
+            System.out.println(e.getMessage());
+            return false;
         }
+    }
+
+    public AssignResponse assignUser(Long instanceId, UserTaskAssignBody assign) throws TaskInstanceNotFound{
+        TaskInstance taskInstance = taskInstanceDAO.findById(instanceId).orElseThrow(()->new TaskInstanceNotFound(instanceId));
+        if(assign.getUserEmails().isEmpty()) return new AssignResponse("fail");
+        List<String> invalidEmails = new ArrayList<>();
+        List<String> alreadyAssignedUser = new ArrayList<>();
+
         
-    }
+        Rooms room = taskInstance.getRoomId();
 
-    public List<TaskInstance> getAllInstances(){
-        return taskInstanceDAO.findAll();
-    }
+        List<RoomMembers> roomMembers = new ArrayList<>();
+        List<UserTaskAssigned> assignedUsers = new ArrayList<>();
 
-    public List<User> getAssigned(Long taskInstanceId){
-        TaskInstance instance = taskInstanceDAO.findById(taskInstanceId).orElse(null);
-        List<User> users = new ArrayList<>();
-        if(instance != null){
-            List<UserTaskAssigned> assigned = userTaskAssignedDAO.findByTaskInstanceId(instance);
-            for(UserTaskAssigned assignee: assigned ){
-                User user = userDAO.findById(assignee.getUserId().getId()).orElse(null);
-                if(user != null){
-                    users.add(user);
-                }
+        
+        for(String userEmail: assign.getUserEmails()){
+            User user = userDAO.findByEmailIgnoreCase(userEmail).orElse(null);
+            if(user != null && !userTaskAssignedDAO.existsByTaskInstanceIdAndUserId(taskInstance, user)){
+                RoomMembers roomMember = new RoomMembers();
+                roomMember.setRoom(room);
+                roomMember.setUser(user);
+                roomMember.setRole("user");
+                roomMembers.add(roomMember);
+
+                UserTaskAssigned assignedUser = new UserTaskAssigned();
+                assignedUser.setTaskInstanceId(taskInstance);
+                assignedUser.setUserId(user);
+                assignedUsers.add(assignedUser);
+            } else if(user != null){
+                alreadyAssignedUser.add(userEmail);
+            } else {
+                invalidEmails.add(userEmail);
             }
         }
-        System.out.println("reached outside");
-        return users;
+
+        if(invalidEmails.isEmpty() && alreadyAssignedUser.isEmpty()){
+            roomMembersDAO.saveAll(roomMembers);
+            userTaskAssignedDAO.saveAll(assignedUsers);
+            return new AssignResponse("success");
+        } else{
+            return new AssignResponse("fail", invalidEmails, alreadyAssignedUser);
+        } 
+    }
+
+    public List<TaskInstance> getAllTaskInstances(Long taskId) throws TaskNotFoundException{
+        Task task = taskDAO.findById(taskId).orElseThrow(()-> new TaskNotFoundException(taskId));
+        return taskInstanceDAO.findByTaskId(task);
+    }
+
+    public List<UserResponseBody> getAssigned(Long taskInstanceId) throws TaskInstanceNotFound{
+        TaskInstance instance = taskInstanceDAO.findById(taskInstanceId).orElseThrow(()-> new TaskInstanceNotFound(taskInstanceId));
+        List<UserTaskAssigned> assigned = userTaskAssignedDAO.findByTaskInstanceId(instance);
+        return assigned.stream().map(user -> {
+                    UserResponseBody userBody = new UserResponseBody();
+                    userBody.setEmail(user.getUserId().getEmail());
+                    userBody.setName(user.getUserId().getName());
+                    return userBody;
+                }).collect(Collectors.toList());
     }
 
 }
