@@ -50,4 +50,12 @@ public class User {
     @OrderBy("id desc")
     private List<VerificationToken> verificationTokens = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserTaskAssigned> userTaskAssigned = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskMentor> taskMentors = new ArrayList<>();
+
 }

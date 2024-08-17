@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "user_task_assigned")
+@Table(name = "user_task_assigned", 
+            uniqueConstraints = @UniqueConstraint(columnNames = {"task_instance_id", "user_id"}))
 @Data
 @NoArgsConstructor
 public class UserTaskAssigned {
