@@ -5,6 +5,6 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class UserTaskAssignBody {
-    private List<String> userEmails;
+public class TaskListBody {
+    List<Long> taskIds;
 }

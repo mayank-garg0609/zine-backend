@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Rooms {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -36,12 +35,11 @@ public class Rooms {
     private Timestamp timestamp;
 
     @JsonIgnore
-    @ManyToMany (mappedBy = "room", cascade = CascadeType.REMOVE)
+    @OneToMany (mappedBy = "room", cascade = CascadeType.REMOVE)
     private List<RoomMembers> roomMembers;
 
-    // @JsonIgnore
-    // @ManyToMany(mappedBy = "roomId", cascade = CascadeType.REMOVE)
-    // @OrderBy("id desc")
-    // private List<Message> messages;
-
+    @JsonIgnore
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "task_instance_id")
+    private TaskInstance taskInstance;
 }

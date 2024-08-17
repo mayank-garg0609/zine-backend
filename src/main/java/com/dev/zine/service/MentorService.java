@@ -2,12 +2,12 @@ package com.dev.zine.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dev.zine.api.model.mentors.MentorUpdateBody;
+import com.dev.zine.api.model.mentors.MentorAssignBody;
+import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.TaskDAO;
 import com.dev.zine.dao.TaskInstanceDAO;
@@ -34,29 +34,6 @@ public class MentorService {
     @Autowired
     private TaskInstanceDAO taskInstanceDAO;
 
-    public Map<String, String> assignMentors(Task task, List<String> mentorIds){
-        String message = "";
-        List<TaskMentor> mentorsList = new ArrayList<>();
-        for(String mentorId: mentorIds){
-            User user = userDAO.findByEmailIgnoreCase(mentorId).orElse(null);
-            if(user != null && !taskMentorDAO.existsByMentorAndTaskId(user, task)){
-                TaskMentor newMentor = new TaskMentor();
-                newMentor.setMentor(user);
-                newMentor.setTaskId(task);
-                mentorsList.add(newMentor);
-            } else{
-                message += mentorId.toString() + " ";
-            }
-        }
-        
-        if(message == ""){
-            taskMentorDAO.saveAll(mentorsList);
-            return Map.of("message","All mentors added successfully", "status","success");
-        } else{
-            return Map.of("message",message, "status","fail");
-        }
-    }
-
     public void addMentorsToRoom(Task task, Rooms room){
         List<TaskMentor> mentors = taskMentorDAO.findByTaskId(task);
         List<RoomMembers> mentorRooms = new ArrayList<>();
@@ -70,31 +47,44 @@ public class MentorService {
         roomMembersDAO.saveAll(mentorRooms);
     }
     
+    public AssignResponse assignMentors(Long taskId, MentorAssignBody body) throws TaskNotFoundException{
+        Task task = taskDAO.findById(taskId).orElseThrow(()-> new TaskNotFoundException(taskId));
+        List<TaskInstance> instances = taskInstanceDAO.findByTaskId(task);
 
-    public void addMentors(MentorUpdateBody body) throws TaskNotFoundException{
-        try{
-            Task task = taskDAO.findById(body.getTaskId()).orElse(null);
-            if(task != null) {
-                assignMentors(task, body.getMentorIds());
-                List<TaskInstance> instances = taskInstanceDAO.findByTaskId(task);
-                List<User> users = userDAO.findByEmailIn(body.getMentorIds());
-                for(TaskInstance instance: instances){
-                    Rooms room = instance.getRoomId();
-                    for(User user: users){
-                        if(!roomMembersDAO.existsByUserAndRoom(user, room)){
-                            RoomMembers member = new RoomMembers();
-                            member.setRole("mentor");
-                            member.setRoom(room);
-                            member.setUser(user);
-                            roomMembersDAO.save(member);
-                        }
-                    }
+        List<String> invalidEmails = new ArrayList<>();
+        List<String> alreadyAssignedUser = new ArrayList<>();
+
+        List<RoomMembers> roomMembers = new ArrayList<>();
+        List<TaskMentor> mentors = new ArrayList<>();
+
+        for(TaskInstance instance: instances){
+            Rooms room = instance.getRoomId();
+            for(String email: body.getMentorEmails()){
+                User user = userDAO.findByEmailIgnoreCase(email).orElse(null);
+                if(user != null && !taskMentorDAO.existsByMentorAndTaskId(user, task)){
+                    RoomMembers member = new RoomMembers();
+                    member.setRole("mentor");
+                    member.setRoom(room);
+                    member.setUser(user);
+                    roomMembers.add(member);
+
+                    TaskMentor newMentor = new TaskMentor();
+                    newMentor.setMentor(user);
+                    newMentor.setTaskId(task);
+                    mentors.add(newMentor);
+                } else if(user != null){
+                    alreadyAssignedUser.add(email);
+                } else {
+                    invalidEmails.add(email);
                 }
-            } else{
-                throw new TaskNotFoundException();
             }
-        } catch(TaskNotFoundException e){
-            throw e;
         }
+
+        if(invalidEmails.isEmpty() && alreadyAssignedUser.isEmpty()){
+            roomMembersDAO.saveAll(roomMembers);
+            taskMentorDAO.saveAll(mentors);
+            return new AssignResponse("success");
+        } 
+        return new AssignResponse("fail", invalidEmails, alreadyAssignedUser);
     }
 }

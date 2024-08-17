@@ -1,14 +1,18 @@
 package com.dev.zine.api.controllers.task;
 
-import com.dev.zine.api.model.task.MentorAssignBody;
+import com.dev.zine.api.model.task.InstanceListBody;
+import com.dev.zine.api.model.mentors.MentorAssignBody;
 import com.dev.zine.api.model.task.TaskCreateBody;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
+import com.dev.zine.api.model.task.TaskListBody;
 import com.dev.zine.api.model.task.UserTaskAssignBody;
+import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskInstance;
-import com.dev.zine.model.User;
+import com.dev.zine.service.MentorService;
 import com.dev.zine.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,57 +24,58 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
-
-
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
     @Autowired
     TaskService taskService;
+    @Autowired
+    MentorService mentorService;
 
-    @GetMapping("/get-all")
-    public ResponseEntity<List<Task>> getAllTasks() {
+    @GetMapping()
+    public ResponseEntity<?> getAllTasks() {
         List<Task> allTasks = taskService.getAllTasks();
-        return ResponseEntity.ok().body(allTasks);
+        return ResponseEntity.ok().body(Map.of("tasks",allTasks));
     }
 
-    @GetMapping("/get")
-    public Task getTaskById(@RequestParam Long taskId) throws TaskNotFoundException{
-        return taskService.getTask(taskId);
+    @GetMapping("/{taskId}")
+    public ResponseEntity<?> getTaskById(@PathVariable Long taskId) throws TaskNotFoundException{
+        Task task = taskService.getTask(taskId);
+        return ResponseEntity.ok().body(Map.of("task", task));
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Task> createTask(@RequestBody TaskCreateBody task) {
+    @PostMapping()
+    public ResponseEntity<?> createTask(@RequestBody TaskCreateBody task) {
         Task createdTask = taskService.createTask(task);
-        return ResponseEntity.ok().body(createdTask);
+        return ResponseEntity.ok().body(Map.of("task", createdTask));
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<Map<String, String>> deleteTask(@RequestBody List<Long> id) {
-        if(taskService.deleteTask(id)){
-            return ResponseEntity.ok().body(Map.of("status","success","message","Task "+id+" deleted successfully"));
+    @DeleteMapping()
+    public ResponseEntity<?> deleteTask(@RequestBody TaskListBody body) {
+        if(taskService.deleteTask(body.getTaskIds())){
+            return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok().body(Map.of("status","fail","message","Task "+id+" not found"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
-    @PostMapping("/update")
-    public Task updateTask(@RequestParam Long id, @RequestBody TaskCreateBody task) throws TaskNotFoundException{
-        return taskService.updateTask(id, task);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody TaskCreateBody task) throws TaskNotFoundException{
+        Task updatedTask = taskService.updateTask(id, task);
+        return ResponseEntity.ok().body(Map.of("task", updatedTask));
     }
 
-    @PostMapping("/instance/create")
-    public ResponseEntity<?> createInstance(@RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
+    @PostMapping("/{taskId}/instance")
+    public ResponseEntity<?> createInstance(@PathVariable Long taskId, @RequestBody TaskInstanceCreateBody body) throws TaskNotFoundException {
         try{
-            TaskInstance taskInstance = taskService.createInstance(body);
-            return ResponseEntity.ok().body(taskInstance);
+            TaskInstance taskInstance = taskService.createInstance(taskId, body);
+            return ResponseEntity.ok().body(Map.of("taskInstance", taskInstance));
         } catch(TaskNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task not found");
         }
     }
 
-    @PostMapping("/instance/update")
-    public ResponseEntity<?> updateInstance(@RequestBody TaskInstanceCreateBody body, @RequestParam Long instanceId) throws TaskInstanceNotFound{
+    @PutMapping("/{taskId}/instance/{instanceId}")
+    public ResponseEntity<?> updateInstance(@RequestBody TaskInstanceCreateBody body, @PathVariable Long instanceId) throws TaskInstanceNotFound{
         try{
             TaskInstance instance = taskService.updateInstance(body, instanceId);
             return ResponseEntity.ok().body(instance);
@@ -80,10 +85,10 @@ public class TaskController {
         
     }
 
-    @PostMapping("/instance/delete")
-    public ResponseEntity<?> deleteInstance(@RequestBody List<Long> ids) {
+    @DeleteMapping("/{taskId}/instance")
+    public ResponseEntity<?> deleteInstance(@RequestBody InstanceListBody body) {
         try{
-            taskService.deleteInstance(ids);
+            taskService.deleteInstance(body.getInstanceIds());
             return ResponseEntity.ok().build();
         } catch(Exception e){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -91,34 +96,44 @@ public class TaskController {
         
     }
     
-    @GetMapping("/instance")
-    public List<TaskInstance> getAllInstances() {
-        return taskService.getAllInstances();
-    }
-
-    @GetMapping("/get-assigned")
-    public List<User> getAssigned(@RequestParam Long id) {
+    @GetMapping("/{taskId}/instance")
+    public ResponseEntity<?> getAllInstances(@PathVariable Long taskId) throws TaskNotFoundException{
         try{
-            return taskService.getAssigned(id);
-        } catch(Exception e){
-            System.out.println(e.getMessage());
-            throw new RuntimeException("couldn't get assigned");
+            List<TaskInstance> instances = taskService.getAllTaskInstances(taskId);
+            return ResponseEntity.ok().body(Map.of("instances", instances));
+        } catch(TaskNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }
 
-    @PostMapping("/assign-task")
-    public ResponseEntity<Map<String, String>> assignToTask(@RequestBody UserTaskAssignBody body) throws TaskInstanceNotFound {
+    @GetMapping("/{taskId}/instance/{instanceId}/assigned")
+    public ResponseEntity<?> getAssigned(@PathVariable Long instanceId) throws TaskInstanceNotFound {
         try{
-            Map<String, String> res = taskService.assignUser(body);
+            List<UserResponseBody> userList = taskService.getAssigned(instanceId);
+            return ResponseEntity.ok().body(Map.of("users", userList));
+        } catch(TaskInstanceNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{taskId}/instance/{instanceId}/assign")
+    public ResponseEntity<?> assignToTask(@PathVariable Long instanceId, @RequestBody UserTaskAssignBody body) throws TaskInstanceNotFound {
+        try{
+            AssignResponse res = taskService.assignUser(instanceId, body);
             return ResponseEntity.ok().body(res);
-        } catch(Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch(TaskInstanceNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }
     
-    @PostMapping("/assign-mentors")
-    public void assignMentors(@RequestBody MentorAssignBody mentorAssignBody) {
-        
+    @PostMapping("/{taskId}/mentor")
+    public ResponseEntity<?> assignMentors(@PathVariable Long taskId, @RequestBody MentorAssignBody mentorAssignBody) throws TaskNotFoundException{
+        try{
+            AssignResponse res = mentorService.assignMentors(taskId, mentorAssignBody);
+            return ResponseEntity.ok().body(res);
+        } catch(TaskNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        }
     }
     
 }

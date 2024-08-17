@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.role.RoleAssignBody;
-import com.dev.zine.api.model.role.RoleAssignResponse;
 import com.dev.zine.api.model.role.RoleBody;
 import com.dev.zine.api.model.role.RolesListBody;
-import com.dev.zine.api.model.role.UserByRoleRes;
+import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.model.Role;
 import com.dev.zine.service.RoleService;
@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
 
 @RestController
 @RequestMapping("/role")
@@ -87,7 +84,7 @@ public class RoleController {
     @PostMapping("/assign")
     public ResponseEntity<?> assignUsers(@RequestBody RoleAssignBody body) throws RoleNotFound{
         try{
-            RoleAssignResponse result = roleService.assignRole(body);
+            AssignResponse result = roleService.assignRole(body);
             return ResponseEntity.ok().body(result);
         } catch(RoleNotFound e){
             throw e;
@@ -97,7 +94,7 @@ public class RoleController {
     @GetMapping("/{roleId}/users")
     public ResponseEntity<?> getUsersByRole(@PathVariable Long roleId) throws RoleNotFound{
         try{
-            List<UserByRoleRes> res = roleService.getUsersByRole(roleId);
+            List<UserResponseBody> res = roleService.getUsersByRole(roleId);
             return ResponseEntity.ok().body(Map.of("users", res));
         } catch(RoleNotFound e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
