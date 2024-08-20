@@ -1,5 +1,6 @@
 package com.dev.zine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.cloud.Timestamp;
 
 import jakarta.persistence.Column;
@@ -36,7 +37,8 @@ public class Blog {
     @Column(name= "created_at")
     private Timestamp createdAt;
 
+    @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private BlogCategory blogCategory;
+    @JoinColumn(name = "parent_id")
+    private Blog parentBlog;
 }
