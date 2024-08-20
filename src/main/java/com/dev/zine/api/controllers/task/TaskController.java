@@ -55,7 +55,9 @@ public class TaskController {
         if(taskService.deleteTask(body.getTaskIds())){
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        else{
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @PutMapping("/{id}")
