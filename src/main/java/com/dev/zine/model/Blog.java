@@ -31,6 +31,9 @@ public class Blog {
     @Column(name = "blog_description")
     private String blogDescription;
 
+    @Column(name = "content")
+    private String content;
+
     @Column(name = "dp_url")
     private String dpURL;
 

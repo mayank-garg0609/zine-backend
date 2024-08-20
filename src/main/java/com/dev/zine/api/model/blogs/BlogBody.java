@@ -7,9 +7,10 @@ import lombok.Data;
 @Data
 public class BlogBody {
     @NotNull
-    private String title;
-    private String description;
-    private String dp;
+    private String blogName;
+    private String blogDescription;
+    private String dpURL;
     @NotNull
     private Long parentBlog;
+    private String content; 
 }
