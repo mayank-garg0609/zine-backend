@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.dev.zine.api.model.recruitment.RecruitmentCreateBody;
 import com.dev.zine.dao.RecruitmentDAO;
 import com.dev.zine.exceptions.RecruitmentNotFound;
+import com.dev.zine.exceptions.StageAlreadyExists;
 import com.dev.zine.model.Recruitment;
 import com.dev.zine.utils.NullAwareBeanUtilsBean;
 
@@ -18,7 +19,10 @@ public class RecruitmentService {
     @Autowired
     private RecruitmentDAO recruitmentDAO;
 
-    public Recruitment createRecruitment(RecruitmentCreateBody body){
+    public Recruitment createRecruitment(RecruitmentCreateBody body) throws StageAlreadyExists{
+        if(recruitmentDAO.existsByStage(body.getStage())){
+            throw new StageAlreadyExists(body.getStage());
+        }
         Recruitment newR = new Recruitment();
         newR.setDescription(body.getDescription());
         newR.setTitle(body.getTitle());

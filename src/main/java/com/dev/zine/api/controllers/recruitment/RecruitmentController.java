@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dev.zine.api.model.recruitment.RecruitmentCreateBody;
 import com.dev.zine.api.model.recruitment.RecruitmentListBody;
 import com.dev.zine.exceptions.RecruitmentNotFound;
+import com.dev.zine.exceptions.StageAlreadyExists;
 import com.dev.zine.model.Recruitment;
 import com.dev.zine.service.RecruitmentService;
 
@@ -63,9 +64,12 @@ public class RecruitmentController {
         try {
             Recruitment rec = recruitmentService.createRecruitment(body);
             return ResponseEntity.ok().body(Map.of("recruitment", rec));
-        } catch(Exception e){
+        } catch(StageAlreadyExists e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        } 
+        catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
-        }
+        } 
     }
 
     @DeleteMapping()
