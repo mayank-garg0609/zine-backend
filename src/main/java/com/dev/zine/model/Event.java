@@ -12,7 +12,6 @@ import java.util.Date;
 @NoArgsConstructor
 
 public class Event {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name ="id" , nullable = false)
@@ -31,12 +30,12 @@ public class Event {
     private String venue;
 
     @Column(name ="startDate")
-    private Date start_date_time;
+    private Date startDateTime;
 
     @Column(name = "endDate")
-    private Date end_date_time;
+    private Date endDateTime;
 
-//    @OneToOne ???
-//    @JoinColumn(name="recruitment")
-//    private Recruitment id;
+    @ManyToOne
+    @JoinColumn(name="recruitment")
+    private Recruitment recruitment;
 }

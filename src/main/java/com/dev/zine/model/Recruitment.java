@@ -1,13 +1,16 @@
 package com.dev.zine.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "recruitment", uniqueConstraints = @UniqueConstraint(columnNames = {"stage"}))
+@Table(name = "recruitment")
 @Data
 @NoArgsConstructor
 public class Recruitment {
@@ -19,9 +22,13 @@ public class Recruitment {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "stage")
+    @Column(name = "stage", unique = true)
     private Long stage;
 
     @Column(name = "description")
     private String description;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "recruitment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Event> events = new ArrayList<>();
 }
