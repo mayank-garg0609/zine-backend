@@ -57,4 +57,8 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserTaskAssigned> userTaskAssigned = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskInstanceComments> taskInstanceComments = new ArrayList<>();
 }
