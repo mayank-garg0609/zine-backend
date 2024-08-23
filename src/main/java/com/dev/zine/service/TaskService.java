@@ -116,13 +116,14 @@ public class TaskService {
                 Task task = opTask.get();
                 RoomBody newRoom = new RoomBody();
                 newRoom.setDescription(body.getDescription());
-                newRoom.setName(body.getRoomName());
+                newRoom.setName(body.getName());
                 newRoom.setType("project");
                 newRoom.setDpUrl(body.getDpUrl());
                 Rooms room = roomService.createRoom(newRoom);
                 TaskInstance newInstance = new TaskInstance();
                 newInstance.setRoomId(room);
                 newInstance.setTaskId(task);
+                newInstance.setName(body.getName());
                 newInstance.setType(body.getType());
                 taskInstanceDAO.save(newInstance);
                 mentorService.addMentorsToRoom(task, room);

@@ -1,31 +1,75 @@
 package com.dev.zine.api.controllers.event;
 
-import com.dev.zine.api.model.event.Event;
+import com.dev.zine.api.model.event.EventBody;
+import com.dev.zine.api.model.event.EventsList;
+import com.dev.zine.exceptions.EventNotFound;
+import com.dev.zine.exceptions.StageNotFound;
+import com.dev.zine.model.Event;
 import com.dev.zine.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/event")
 public class EventControllers {
-
     @Autowired
-    EventService eventService;
+    private EventService eventService;
 
-    @GetMapping("/get")
-    public List<Event> getAllEvents() {return eventService.readAllEvents();}
+    @GetMapping()
+    public ResponseEntity<?> getAllEvents() {
+        try {
+            List<Event> recs = eventService.getAllEvents();
+            return ResponseEntity.ok().body(Map.of("recruitments", recs));
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+        }
+    }
 
-    @GetMapping("/get/{id}")
-    public Event getEvent(@PathVariable Long id){return eventService.readEvent(id);}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getEvent(@PathVariable Long id){
+        try {
+            Event rec = eventService.getEvent(id);
+            return ResponseEntity.ok().body(Map.of("event",rec));
+        } catch(EventNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        }
+    }
 
-    @PostMapping("/create")
-    public String createEvent(@RequestBody Event event) {return eventService.createEvent(event);}
+    @PostMapping()
+    public ResponseEntity<?> createEvent(@RequestBody EventBody event) {
+        try {
+            Event rec = eventService.createEvent(event);
+            return ResponseEntity.ok().body(Map.of("event", rec));
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+        }
 
-    @PostMapping("/update/{id}")
-    public String updateEvent(@PathVariable Long id,@RequestBody Event event) {return eventService.updateEvent(id ,event);}
+    }
 
-    @PostMapping("/delete")
-    public String deleteEvent(@RequestBody List<Long> ids){return eventService.deleteEvent(ids);}
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEvent(@PathVariable Long id, @RequestBody EventBody event) {
+        try {
+            Event rec = eventService.updateEvent(id ,event);
+            return ResponseEntity.ok().body(Map.of("event",rec));
+        } catch(StageNotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch(EventNotFound e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping()
+    public ResponseEntity<?> deleteEvent(@RequestBody EventsList ids){
+        try{
+            eventService.deleteEvents(ids.getEventIds());
+            return ResponseEntity.ok().build();
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
