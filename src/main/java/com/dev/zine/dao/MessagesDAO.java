@@ -13,4 +13,6 @@ public interface MessagesDAO extends ListCrudRepository<Message, Long> {
     Optional<Message> findById(Long id);
 
     List<Message> findByRoomIdOrderByTimestampDesc(Rooms roomId);
+
+    List<Message> findByRoomIdOrderByTimestampAsc(Rooms roomId);
 }

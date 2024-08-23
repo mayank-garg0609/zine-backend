@@ -40,6 +40,9 @@ public class TaskInstance {
     @Column(name = "type")
     private String type;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "status")
     private String status;
 
