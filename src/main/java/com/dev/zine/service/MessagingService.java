@@ -3,10 +3,8 @@ package com.dev.zine.service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.NoSuchElementException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,15 +24,11 @@ public class MessagingService {
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
  
-    private SimpMessagingTemplate simpMessagingTemplate;
-
- 
     public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
         this.messagesDAO = messagesDAO;
         this.fcm = fcm;
         this.userDAO = userDAO;
         this.roomsDAO = roomsDAO;
-        this.simpMessagingTemplate=simpMessagingTemplate;
 
     }
 
@@ -66,11 +60,10 @@ public class MessagingService {
         if (room != null) {
             // throw new RoomDoesNotExist();
             // List<Message> messages=new List();
-            List<Message> messages = messagesDAO.findByRoomIdOrderByTimestampDesc(room);
+            List<Message> messages = messagesDAO.findByRoomIdOrderByTimestampAsc(room);
             return messages;
         } else {
             throw new RoomDoesNotExist();
         }
     }
-
 }
