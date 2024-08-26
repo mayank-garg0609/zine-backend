@@ -40,11 +40,15 @@ public class RecruitmentService {
         return recruitmentDAO.findAll();
     }
 
-    public Recruitment editRecruitment(Long id, RecruitmentCreateBody update) throws RecruitmentNotFound{
+    public Recruitment editRecruitment(Long id, RecruitmentCreateBody update) throws RecruitmentNotFound, StageAlreadyExists{
         Recruitment existing = recruitmentDAO.findById(id).orElseThrow(() -> new RecruitmentNotFound(id));
+        if(recruitmentDAO.existsByStage(update.getStage())){
+            throw new StageAlreadyExists(update.getStage());
+        }
         try{
             NullAwareBeanUtilsBean beanUtilsBean = new NullAwareBeanUtilsBean();
             beanUtilsBean.copyProperties(existing, update);
+            existing.setStage(update.getStage());
             recruitmentDAO.save(existing);
             return existing;
         } catch(IllegalAccessException | InvocationTargetException e){
