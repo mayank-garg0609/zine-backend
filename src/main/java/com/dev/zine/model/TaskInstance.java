@@ -16,6 +16,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -43,8 +45,10 @@ public class TaskInstance {
     @Column(name = "status")
     private String status;
 
-    @Column(name = "completion_percentage")
-    private Integer completion_percentage;
+    @Column(name = "completion_percentage", columnDefinition = "int default 0")
+    @Max(100)
+    @Min(0)
+    private Integer completionPercentage;
 
     @JsonIgnore
     @OneToMany(mappedBy = "taskInstanceId", cascade = CascadeType.ALL, orphanRemoval = true)

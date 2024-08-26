@@ -20,7 +20,7 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
     private static boolean isPrimitiveOrString(Type type) {
         if (type instanceof Class<?>) {
             Class<?> clazz = (Class<?>) type;
-            return clazz.isPrimitive() || clazz.equals(String.class);
+            return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Integer.class);
         }
         return false;
     }
