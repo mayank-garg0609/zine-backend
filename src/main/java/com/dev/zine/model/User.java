@@ -11,7 +11,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "Users")
 @Data
-@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned"})
+@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned", "taskInstanceComments"})
 public class User {
 
     @Id
