@@ -56,7 +56,7 @@ public class TaskController {
             return ResponseEntity.ok().build();
         }
         else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 

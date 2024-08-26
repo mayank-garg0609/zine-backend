@@ -1,74 +1,76 @@
 package com.dev.zine.service;
 
-import com.dev.zine.api.model.event.Event;
+import com.dev.zine.model.Event;
+import com.dev.zine.model.Recruitment;
+import com.dev.zine.utils.NullAwareBeanUtilsBean;
+import com.dev.zine.api.model.event.EventBody;
 import com.dev.zine.dao.EventDAO;
-import org.springframework.beans.BeanUtils;
+import com.dev.zine.dao.RecruitmentDAO;
+import com.dev.zine.exceptions.EventNotFound;
+import com.dev.zine.exceptions.RecruitmentNotFound;
+import com.dev.zine.exceptions.StageNotFound;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 @Service
 public class EventService {
-
     @Autowired
     private EventDAO eventDAO;
+    @Autowired
+    private RecruitmentDAO recruitmentDAO;
 
-    public List<Event> readAllEvents() {
-        List<com.dev.zine.model.Event> eventsList = eventDAO.findAll();
-        List<Event> events = new ArrayList<>();
-
-        for(com.dev.zine.model.Event event : eventsList) {
-
-            Event newEvent = new Event();
-            newEvent.setId(event.getId());
-            newEvent.setDescription(event.getDescription());
-            newEvent.setType(event.getType());
-            newEvent.setName(event.getName());
-            newEvent.setVenue(event.getVenue());
-           // newEvent.setRecruitment(event.getRecruitment());
-            newEvent.setEnd_date_time(event.getEnd_date_time());
-            newEvent.setEnd_date_time(event.getEnd_date_time());
-
-            events.add(newEvent);
-        }
-        return events;
+    public List<Event> getAllEvents() {
+        return eventDAO.findAll();
     }
 
-    public Event readEvent(Long id) {
-        com.dev.zine.model.Event even = eventDAO.findById(id).get();
-        Event event =new Event();
-        BeanUtils.copyProperties(even,event);
+    public Event getEvent(Long id) throws EventNotFound{
+        Event event = eventDAO.findById(id).orElseThrow(() -> new EventNotFound(id));
         return event;
     }
 
-    public String createEvent(Event event) {
-        com.dev.zine.model.Event newEvent = new com.dev.zine.model.Event();
-        BeanUtils.copyProperties(event,newEvent);
+    public Event createEvent(EventBody body) throws RecruitmentNotFound, StageNotFound {
+        Event newEvent = new Event();
+        if(body.getRecruitment() != null){
+            Recruitment rec = recruitmentDAO.findByStage(body.getRecruitment());
+            if(rec == null) {
+                throw new StageNotFound(body.getRecruitment());
+            }
+            newEvent.setRecruitment(rec);
+        }
+        newEvent.setDescription(body.getDescription());
+        newEvent.setEndDateTime(body.getEndDateTime());
+        newEvent.setStartDateTime(body.getStartDateTime());
+        newEvent.setName(body.getName());
+        newEvent.setType(body.getType());
+        newEvent.setVenue(body.getVenue());
         eventDAO.save(newEvent);
-        return "Event Created";
+        return newEvent;
     }
 
-    public String updateEvent(long id ,Event event) {
-        com.dev.zine.model.Event existingEvent = eventDAO.findById(id).get();
-        existingEvent.setDescription(event.getDescription());
-        existingEvent.setType(event.getType());
-        existingEvent.setName(event.getName());
-        existingEvent.setVenue(event.getVenue());
-      //existingEvent.setRecruitment(event.getRecruitment());
-        existingEvent.setStart_date_time(event.getStart_date_time());
-        existingEvent.setEnd_date_time(event.getEnd_date_time());
-
-        eventDAO.save(existingEvent);
-
-        return "Event Updated";
+    public Event updateEvent(long id, EventBody update) throws EventNotFound, StageNotFound {
+        Event existing = eventDAO.findById(id).orElseThrow(() -> new EventNotFound(id));
+        try{
+            NullAwareBeanUtilsBean beanUtilsBean = new NullAwareBeanUtilsBean();
+            beanUtilsBean.copyProperties(existing, update);
+            if(update.getRecruitment() != null){
+                Recruitment rec = recruitmentDAO.findByStage(update.getRecruitment());
+                if(rec == null) {
+                    throw new StageNotFound(update.getRecruitment());
+                }
+                existing.setRecruitment(rec);
+            }
+            eventDAO.save(existing);
+            return existing;
+        } catch(IllegalAccessException | InvocationTargetException e){
+            return existing;
+        }
     }
 
-    public String deleteEvent(List<Long> ids) {
+    public void deleteEvents(List<Long> ids) {
         eventDAO.deleteAllById(ids);
-        return "Event Deleted"+ids ;
     }
 }
