@@ -56,7 +56,9 @@ public class RecruitmentController {
             return ResponseEntity.ok().body(Map.of("recruitment", rec));
         } catch(RecruitmentNotFound e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        }
+        } catch(StageAlreadyExists e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        } 
     }
 
     @PostMapping()
