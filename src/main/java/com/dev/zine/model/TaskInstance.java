@@ -42,6 +42,9 @@ public class TaskInstance {
     @Column(name = "type")
     private String type;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "status")
     private String status;
 
@@ -53,4 +56,8 @@ public class TaskInstance {
     @JsonIgnore
     @OneToMany(mappedBy = "taskInstanceId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserTaskAssigned> userTaskAssigned = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskInstance", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskInstanceComments> taskInstanceComments = new ArrayList<>();
 }

@@ -3,6 +3,9 @@ package com.dev.zine.utils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtils;
 
+import java.util.Date;
+import java.sql.Timestamp;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
@@ -20,7 +23,7 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
     private static boolean isPrimitiveOrString(Type type) {
         if (type instanceof Class<?>) {
             Class<?> clazz = (Class<?>) type;
-            return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Integer.class);
+            return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Date.class) || clazz.equals(Timestamp.class) || clazz.equals(Integer.class);
         }
         return false;
     }
