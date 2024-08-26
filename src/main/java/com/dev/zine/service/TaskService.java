@@ -124,6 +124,8 @@ public class TaskService {
                 newInstance.setRoomId(room);
                 newInstance.setTaskId(task);
                 newInstance.setType(body.getType());
+                newInstance.setCompletionPercentage(body.getCompletionPercentage());
+                newInstance.setStatus(body.getStatus());
                 taskInstanceDAO.save(newInstance);
                 mentorService.addMentorsToRoom(task, room);
                 return newInstance;
@@ -151,6 +153,8 @@ public class TaskService {
                 throw new TaskInstanceNotFound(taskInstance);
             }
         } catch(TaskInstanceNotFound e){
+            throw e;
+        } catch(Exception e){
             throw e;
         }
     }

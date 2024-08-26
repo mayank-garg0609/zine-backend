@@ -73,6 +73,8 @@ public class TaskController {
             return ResponseEntity.ok().body(Map.of("taskInstance", taskInstance));
         } catch(TaskNotFoundException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task not found");
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -83,6 +85,8 @@ public class TaskController {
             return ResponseEntity.ok().body(instance);
         } catch(TaskInstanceNotFound e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
         
     }

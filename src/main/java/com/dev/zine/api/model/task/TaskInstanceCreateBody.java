@@ -10,4 +10,6 @@ public class TaskInstanceCreateBody {
     private String roomName;
     private String dpUrl;
     private String description;
+    private String status;
+    private Integer completionPercentage;
 }
