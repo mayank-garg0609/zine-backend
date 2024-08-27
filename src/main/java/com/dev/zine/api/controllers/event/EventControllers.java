@@ -24,7 +24,7 @@ public class EventControllers {
     public ResponseEntity<?> getAllEvents() {
         try {
             List<Event> recs = eventService.getAllEvents();
-            return ResponseEntity.ok().body(Map.of("recruitments", recs));
+            return ResponseEntity.ok().body(Map.of("events", recs));
         } catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
         }
