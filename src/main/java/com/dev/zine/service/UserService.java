@@ -1,17 +1,22 @@
 package com.dev.zine.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
+import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.UserDAO;
+import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotVerifiedException;
+import com.dev.zine.model.Role;
 import com.dev.zine.model.User;
+import com.dev.zine.model.UserToRole;
 import com.dev.zine.model.VerificationToken;
 
 import jakarta.transaction.Transactional;
@@ -21,24 +26,21 @@ import java.util.*;
 
 @Service
 public class UserService {
-
+    @Autowired
     private UserDAO userDAO;
+    @Autowired
     private VerificationTokenDAO verificationTokenDAO;
-
+    @Autowired
     private EncryptionService encryptionService;
-
+    @Autowired
     private JWTService jwtService;
+    @Autowired
     private EmailService emailService;
-
-    public UserService(UserDAO userDAO, EncryptionService encryptionService, JWTService jwtService,
-            EmailService emailService, VerificationTokenDAO verificationTokenDAO) {
-        this.userDAO = userDAO;
-        this.encryptionService = encryptionService;
-        this.jwtService = jwtService;
-        this.emailService = emailService;
-        this.verificationTokenDAO = verificationTokenDAO;
-    }
-
+    @Autowired
+    private RoleDAO roleDAO;
+    @Autowired
+    private UserToRoleDAO userToRoleDAO;
+ 
     /**
      * Attempts to register a user given the information provided.
      * 
@@ -55,14 +57,26 @@ public class UserService {
         user.setEmail(registrationBody.getEmail());
         user.setName(registrationBody.getName());
         user.setPassword(encryptionService.encryptPassword(registrationBody.getPassword()));
+
         VerificationToken verificationToken = createVerificationToken(user);
         try {
             emailService.sendVerificationEmail(verificationToken);
         } catch (EmailFailureException e) {
-
             e.printStackTrace();
         }
-        return userDAO.save(user);
+
+        userDAO.save(user);
+
+        String findRole = user.getEmail().substring(0, 4);
+        Role role = roleDAO.findByPermission(findRole).orElse(null);
+        if(role != null) {
+            UserToRole roleMapping = new UserToRole();
+            roleMapping.setRole(role);
+            roleMapping.setUser(user);
+            userToRoleDAO.save(roleMapping);
+        }
+
+        return user; 
     }
 
     /**
