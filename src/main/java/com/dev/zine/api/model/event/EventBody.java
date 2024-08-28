@@ -22,7 +22,6 @@ public class EventBody {
     @NotNull
     private String venue;
 
-    @NotNull
     private Long recruitment;
 
     @NotNull
