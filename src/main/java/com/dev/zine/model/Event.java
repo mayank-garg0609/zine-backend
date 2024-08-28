@@ -44,7 +44,6 @@ public class Event {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Date endDateTime;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name="recruitment")
     private Recruitment recruitment;

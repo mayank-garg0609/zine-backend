@@ -23,7 +23,7 @@ public class NullAwareBeanUtilsBean extends BeanUtilsBean {
     private static boolean isPrimitiveOrString(Type type) {
         if (type instanceof Class<?>) {
             Class<?> clazz = (Class<?>) type;
-            return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Date.class) || clazz.equals(Timestamp.class) || clazz.equals(Integer.class);
+            return clazz.isPrimitive() || clazz.equals(String.class) || clazz.equals(Date.class) || clazz.equals(Timestamp.class);
         }
         return false;
     }
