@@ -6,6 +6,9 @@ import com.dev.zine.exceptions.EventNotFound;
 import com.dev.zine.exceptions.StageNotFound;
 import com.dev.zine.model.Event;
 import com.dev.zine.service.EventService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +44,7 @@ public class EventControllers {
     }
 
     @PostMapping()
-    public ResponseEntity<?> createEvent(@RequestBody EventBody event) {
+    public ResponseEntity<?> createEvent(@Valid @RequestBody EventBody event) {
         try {
             Event rec = eventService.createEvent(event);
             return ResponseEntity.ok().body(Map.of("event", rec));
