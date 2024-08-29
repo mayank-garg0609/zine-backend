@@ -36,7 +36,7 @@ public class TaskInstance {
     private Task taskId;
     
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="room_id")
+    @JoinColumn(name="room_id", referencedColumnName = "id")
     private Rooms roomId;
 
     @Column(name = "type")

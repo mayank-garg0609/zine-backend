@@ -81,8 +81,8 @@ public class MentorService {
         }
 
         if(invalidEmails.isEmpty() && alreadyAssignedUser.isEmpty()){
-            roomMembersDAO.saveAll(roomMembers);
             taskMentorDAO.saveAll(mentors);
+            roomMembersDAO.saveAll(roomMembers);
             return new AssignResponse("success");
         } 
         return new AssignResponse("fail", invalidEmails, alreadyAssignedUser);

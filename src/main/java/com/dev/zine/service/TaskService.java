@@ -170,6 +170,16 @@ public class TaskService {
         }
     }
 
+    public boolean deleteInstance(Long taskInstance){
+        try{
+            taskInstanceDAO.deleteById(taskInstance);
+            return true;
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
     public AssignResponse assignUser(Long instanceId, UserTaskAssignBody assign) throws TaskInstanceNotFound{
         TaskInstance taskInstance = taskInstanceDAO.findById(instanceId).orElseThrow(()->new TaskInstanceNotFound(instanceId));
         if(assign.getUserEmails().isEmpty()) return new AssignResponse("fail");
