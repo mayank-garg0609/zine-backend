@@ -101,6 +101,17 @@ public class TaskController {
         }
         
     }
+
+    @DeleteMapping("/{taskId}/instance/{instanceId}")
+    public ResponseEntity<?> deleteInstance(@PathVariable Long instanceId) {
+        try{
+            taskService.deleteInstance(instanceId);
+            return ResponseEntity.ok().build();
+        } catch(Exception e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+        
+    }
     
     @GetMapping("/{taskId}/instance")
     public ResponseEntity<?> getAllInstances(@PathVariable Long taskId) throws TaskNotFoundException{

@@ -84,11 +84,14 @@ public class RoomController {
     public ResponseEntity delete(@RequestBody List<Long> roomId) {
         System.out.println(roomId);
         try {
+            System.out.println("hi1");
                 roomService.deleteRooms(roomId);
 
             return ResponseEntity.ok().body("Rooms Deleted " + roomId.toString());
 
         } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            System.out.println("hi2");
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }

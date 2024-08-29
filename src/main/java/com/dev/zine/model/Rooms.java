@@ -39,7 +39,10 @@ public class Rooms {
     private List<RoomMembers> roomMembers;
 
     @JsonIgnore
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "task_instance_id")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy="roomId")
     private TaskInstance taskInstance;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "roomId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
 }
