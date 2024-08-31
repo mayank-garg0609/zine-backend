@@ -6,23 +6,26 @@ import com.dev.zine.api.model.task.TaskCreateBody;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
 import com.dev.zine.api.model.task.TaskListBody;
 import com.dev.zine.api.model.task.UserTaskAssignBody;
+import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskInstance;
+import com.dev.zine.model.User;
 import com.dev.zine.service.MentorService;
 import com.dev.zine.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/tasks")
@@ -43,6 +46,20 @@ public class TaskController {
         Task task = taskService.getTask(taskId);
         return ResponseEntity.ok().body(Map.of("task", task));
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getByUser(@AuthenticationPrincipal User user) {
+        try {
+            if( user == null) {
+                throw new UserNotFound(null);
+            }
+            List<UserTasksBody> tasks = taskService.getUserInstances(user);
+            return ResponseEntity.ok().body(Map.of("instances", tasks));
+        } catch(UserNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
 
     @PostMapping()
     public ResponseEntity<?> createTask(@RequestBody TaskCreateBody task) {
