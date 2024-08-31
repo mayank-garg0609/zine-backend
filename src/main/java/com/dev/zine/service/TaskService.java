@@ -26,6 +26,7 @@ import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.api.model.task.TaskCreateBody;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
 import com.dev.zine.api.model.task.UserTaskAssignBody;
+import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.model.UserTaskAssigned;
@@ -236,6 +237,20 @@ public class TaskService {
                     userBody.setName(user.getUserId().getName());
                     return userBody;
                 }).collect(Collectors.toList());
+    }
+
+    public List<UserTasksBody> getUserInstances(User user) {
+        List<UserTaskAssigned> assigned = userTaskAssignedDAO.findByUserId(user);
+        return assigned.stream().map(taskAssigned -> {
+            UserTasksBody body = new UserTasksBody();
+            body.setCompletionPercentage(taskAssigned.getTaskInstanceId().getCompletionPercentage());
+            body.setName(taskAssigned.getTaskInstanceId().getName());
+            body.setStatus(taskAssigned.getTaskInstanceId().getStatus());
+            body.setType(taskAssigned.getTaskInstanceId().getType());
+            body.setId(taskAssigned.getTaskInstanceId().getTaskInstanceId());
+            body.setTask(taskAssigned.getTaskInstanceId().getTaskId());
+            return body;
+        }).collect(Collectors.toList());
     }
 
 }

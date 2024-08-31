@@ -13,4 +13,5 @@ public interface UserTaskAssignedDAO extends ListCrudRepository<UserTaskAssigned
     Optional<UserTaskAssigned> findById(Long id);
     List<UserTaskAssigned> findByTaskInstanceId(TaskInstance taskInstanceId);
     boolean existsByTaskInstanceIdAndUserId(TaskInstance instance, User user);
+    List<UserTaskAssigned> findByUserId(User userId);
 }
