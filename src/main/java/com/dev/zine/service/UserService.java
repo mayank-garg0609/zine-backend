@@ -6,15 +6,19 @@ import org.springframework.stereotype.Service;
 import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
+import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.dao.RoleDAO;
+import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
 import com.dev.zine.model.Role;
+import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.User;
 import com.dev.zine.model.UserToRole;
 import com.dev.zine.model.VerificationToken;
@@ -40,6 +44,9 @@ public class UserService {
     private RoleDAO roleDAO;
     @Autowired
     private UserToRoleDAO userToRoleDAO;
+    @Autowired
+    private RoomMembersDAO roomMembersDAO;
+    @Autowired FirebaseMessagingService firebaseMessagingService;
  
     /**
      * Attempts to register a user given the information provided.
@@ -104,6 +111,10 @@ public class UserService {
             User user = opUser.get();
             if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { //verify password
                 if (user.isEmailVerified()) {
+                    System.out.println(loginBody.getPushToken());
+                    if(loginBody.getPushToken() != null) {
+                        updateToken(user, loginBody.getPushToken());
+                    }
                     return jwtService.generateJWT(user); // generate 
                 } else {
                     List<VerificationToken> verificationTokens = user.getVerificationTokens();
@@ -162,6 +173,42 @@ public class UserService {
             user.setPassword(encryptionService.encryptPassword(body.getPassword()));
             userDAO.save(user);
         }
+    }
+
+    public void updateToken(User user, String newToken) {
+        try {
+            String oldToken = user.getPushToken();
+
+            if(newToken == oldToken) return;
+            
+            user.setPushToken(newToken);
+            userDAO.save(user);
+
+            List<RoomMembers> roomMembers = roomMembersDAO.findByUser(user);
+
+            for(RoomMembers member: roomMembers) {
+                String topic = "room" + member.getRoom().getId().toString();
+
+                if(oldToken != null) {
+                    List<String> oldTokenList = new ArrayList<String>() {{
+                        add(oldToken);
+                    }};
+                    firebaseMessagingService.unsubscribeFromTopic(oldTokenList, topic);
+                }
+                
+                List<String> newTokenList = new ArrayList<>() {{
+                    add(newToken);
+                }};
+                firebaseMessagingService.subscribeToTopic(newTokenList, topic);
+            }
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateTokenHelper(TokenUpdateBody body) throws UserNotFound {
+        User user = userDAO.findByEmailIgnoreCase(body.getUserEmail()).orElseThrow(UserNotFound::new);
+        updateToken(user, body.getToken());
     }
 
 }
