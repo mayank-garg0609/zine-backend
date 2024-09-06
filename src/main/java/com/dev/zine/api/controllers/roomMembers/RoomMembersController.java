@@ -2,6 +2,7 @@ package com.dev.zine.api.controllers.roomMembers;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,9 @@ import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
+import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.RoomMemberNotFound;
-import com.dev.zine.model.RoomMembers;
 import com.dev.zine.service.RoomMembersService;
 
 import jakarta.validation.Valid;
@@ -25,19 +26,16 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/members")
 public class RoomMembersController {
+    @Autowired
     private RoomMembersService roomMembersService;
 
-    public RoomMembersController(RoomMembersService roomMembersService) {
-        this.roomMembersService = roomMembersService;
-    }    
-
     @PostMapping("/add")
-    public ResponseEntity add(@Valid @RequestBody MembersList addMembersBody) {
+    public ResponseEntity<?> add(@Valid @RequestBody MembersList addMembersBody) {
         System.out.println("addMembersBody");
         System.out.println(addMembersBody);
         try {
-            String message = roomMembersService.addMembers(addMembersBody);
-            return ResponseEntity.ok(message);
+            AssignResponse res = roomMembersService.addMembers(addMembersBody);
+            return ResponseEntity.ok().body(res);
         } catch (RoomDoesNotExist ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception ex) {
@@ -59,7 +57,7 @@ public class RoomMembersController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity getRoomMembers(@RequestParam Long roomId) {
+    public ResponseEntity<?> getRoomMembers(@RequestParam Long roomId) {
         System.out.println(roomId);
         try {
 

@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hibernate.sql.exec.ExecutionException;
+import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
+import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.Members;
 import com.dev.zine.dao.RoomMembersDAO;
@@ -27,19 +30,17 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class RoomMembersService {
-
-    private RoomsDAO roomDAO;
-    private RoomMembersDAO roomMembersDAO;
-    private UserDAO userDAO;
-    private RoomService roomService;
-
     @Autowired
-    public RoomMembersService(RoomsDAO roomsDAO, RoomMembersDAO roomMembersDAO, UserDAO userDAO, RoomService roomService) {
-        this.roomDAO = roomsDAO;
-        this.roomMembersDAO = roomMembersDAO;
-        this.userDAO = userDAO;
-        this.roomService = roomService;
-    }
+    private RoomsDAO roomDAO;
+    @Autowired
+    private RoomMembersDAO roomMembersDAO;
+    @Autowired
+    private UserDAO userDAO;
+    @Autowired
+    private RoomService roomService;
+    @Autowired
+    private FirebaseMessagingService firebaseMessagingService;
+
     public ResponseEntity<List<Rooms>> getRoomsByEmail(String email) {
         try{
             Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
@@ -65,16 +66,17 @@ public class RoomMembersService {
         }
     }
 
-    public String addMembers(MembersList addMembersBody) throws RoomDoesNotExist {
-
-        Long roomId = addMembersBody.getRoom();
-        List<Members> members = addMembersBody.getMembers();
-        String message = "";
-        Rooms room = roomDAO.findById(roomId).orElse(null);
-
-        if (room != null) {
+    public AssignResponse addMembers(MembersList addMembersBody) throws RoomDoesNotExist, InterruptedException, ExecutionException {
+        try {
+            Long roomId = addMembersBody.getRoom();
+            List<Members> members = addMembersBody.getMembers();
+    
+            List<String> invalidEmails = new ArrayList<>();
+            List<String> alreadyAssignedUser = new ArrayList<>();
+    
+            Rooms room = roomDAO.findById(roomId).orElseThrow(RoomDoesNotExist::new);
+    
             List<RoomMembers> roomMembers = new ArrayList<>();
-
             for (Members memberPair : members) {
                 String memberId = memberPair.getUserEmail();
                 String role = memberPair.getRole();
@@ -86,24 +88,27 @@ public class RoomMembersService {
                     roomMember.setUser(member);
                     roomMember.setRole(role);
                     roomMembers.add(roomMember);
+                } else if(member != null) {
+                    alreadyAssignedUser.add(memberId);
                 } else {
-                    if (member == null)
-                        message += memberId.toString() + " ";
+                    invalidEmails.add(memberId);
                 }
-
             }
-            roomMembersDAO.saveAll(roomMembers);
-            if (message.equals("")) {
-                return "All users added to room " + room.getName();
-            } else {
-                return message;
-            }
-        } else {
-
-            throw new RoomDoesNotExist();
-
+            if (invalidEmails.isEmpty() && alreadyAssignedUser.isEmpty()) {
+                roomMembersDAO.saveAll(roomMembers);
+                List<String> tokens = roomMembers.stream()
+                    .map(roomMember -> {
+                        return roomMember.getUser().getPushToken();
+                    })
+                    .collect(Collectors.toList());
+                firebaseMessagingService.subscribeToTopic(tokens, "room" + room.getId());
+                return new AssignResponse("success");
+            } 
+            return new AssignResponse("fail", invalidEmails, alreadyAssignedUser);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new AssignResponse("fail");
         }
-
     }
 
     @Transactional

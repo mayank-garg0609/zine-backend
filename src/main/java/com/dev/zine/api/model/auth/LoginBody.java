@@ -16,11 +16,17 @@ public class LoginBody {
     @NotBlank
     private String password;
 
+    private String pushToken;
+
     public String getEmail() {
         return email;
     }
 
     public String getPassword() {
         return password;
+    }
+
+    public String getPushToken() {
+        return pushToken;
     }
 }
