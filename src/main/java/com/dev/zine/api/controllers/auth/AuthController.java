@@ -72,15 +72,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/verify")
-    public ResponseEntity verifyEmail(@RequestParam String token) {
-        if (userService.verifyUser(token)) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-    }
-
     @GetMapping("/me")
     public User getLoggedInUserProfile(@AuthenticationPrincipal User user) {
         return user;

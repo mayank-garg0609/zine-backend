@@ -47,7 +47,6 @@ public class MessagingService {
 
         // simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
         //         msg);
-        System.out.println("room" + msg.getRoomId()+"");
         fcm.sendNotificationToTopic("room" + msg.getRoomId()+"", room.getName(),
                 sentFrom.getName() + ": " + msg.getContent(),
                 msg.getContentUrl());
