@@ -2,6 +2,7 @@ package com.dev.zine.api.controllers.room;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,6 @@ public class RoomController {
 
     @GetMapping("/get")
     public ResponseEntity getRoom(@RequestParam Long roomId) {
-        System.out.println(roomId);
         try {
             Optional<Rooms> room = roomService.getRoomInfo(roomId);
             if (room.isPresent())
@@ -52,6 +52,16 @@ public class RoomController {
             else
                 return ResponseEntity.notFound().build();
 
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @GetMapping("/announcement")
+    public ResponseEntity<?> getAnnouncementRoom() {
+        try {
+            Rooms room = roomService.getAnnouncementInfo();
+            return ResponseEntity.ok().body(Map.of("announcementRoom", room));
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
