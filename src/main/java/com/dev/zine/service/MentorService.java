@@ -61,7 +61,7 @@ public class MentorService {
             Rooms room = instance.getRoomId();
             for(String email: body.getMentorEmails()){
                 User user = userDAO.findByEmailIgnoreCase(email).orElse(null);
-                if(user != null && !taskMentorDAO.existsByMentorAndTaskId(user, task)){
+                if(user != null && !taskMentorDAO.existsByMentorAndTaskId(user, task) && !roomMembersDAO.existsByUserAndRoom(user, room)){
                     RoomMembers member = new RoomMembers();
                     member.setRole("mentor");
                     member.setRoom(room);

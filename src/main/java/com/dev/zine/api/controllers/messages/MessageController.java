@@ -62,5 +62,4 @@ public class MessageController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
-
 }
