@@ -82,4 +82,12 @@ public class RoomService {
             throw new RoomDoesNotExist();
         }
     }
+
+    public Rooms getAnnouncementInfo() throws RoomDoesNotExist{
+        List<Rooms> announcementRoom = roomDAO.findByType("announcement");
+        if(announcementRoom.size()==0 || announcementRoom.size()>1){
+            throw new RoomDoesNotExist();
+        }
+        return announcementRoom.get(0);
+    } 
 }

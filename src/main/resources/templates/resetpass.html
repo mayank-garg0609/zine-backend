@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Enter New Password</title>
-    <script>
+    <script th:inline="javascript">
       function submitForm(event) {
         event.preventDefault();
         let message = document.getElementById("message");
@@ -12,7 +12,8 @@
           password: document.getElementById("newPassword").value,
           token: document.getElementById("token").value,
         };
-        fetch("http://127.0.0.1:8080/auth/reset", {
+        let url = /*[[${url}]]*/ "";
+        fetch(url + "/auth/reset", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

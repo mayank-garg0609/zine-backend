@@ -20,7 +20,11 @@ public class EmailService {
     private String fromAddress;
 
     @Value("${app.frontend.url}")
-    private String url;
+    private String prodUrl;
+    @Value("${app.environment}")
+    private String env;
+    @Value("${app.dev.url}")
+    private String devUrl;
 
     private JavaMailSender javaMailSender;
 
@@ -35,12 +39,19 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(VerificationToken verificationToken) throws EmailFailureException {
+        String url;
+        if(env.equals("production")) {
+            url = prodUrl;
+        } else {
+            url = devUrl;
+        }
         SimpleMailMessage message = makeMailMessage();
         message.setTo(verificationToken.getUser().getEmail());
         message.setSubject("Verify your email to active your account.");
         message.setText("Please follow the link below to verify your email to active your account.\n" +
-                url + "auth/verify?token=" + verificationToken.getToken());
+                url + "/auth/verify?token=" + verificationToken.getToken());
         try {
+            System.out.println("inside send mail");
             javaMailSender.send(message);
         } catch (MailException ex) {
             throw new EmailFailureException();
@@ -48,13 +59,18 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(User user, String token) throws EmailFailureException {
+        String url;
+        if(env.equals("production")) {
+            url = prodUrl;
+        } else {
+            url = devUrl;
+        }
         SimpleMailMessage message = makeMailMessage();
         message.setTo(user.getEmail());
         message.setSubject("Your password reset request link.");
         message.setText("You requested a password reset on our website. Please " +
                 "find the link below to be able to reset your password.\n" + url +
-                // "/auth/reset?token=" + token);
-                "reset-password?token=" + token);
+                "/reset-password?token=" + token);
         try {
             javaMailSender.send(message);
         } catch (MailException ex) {
