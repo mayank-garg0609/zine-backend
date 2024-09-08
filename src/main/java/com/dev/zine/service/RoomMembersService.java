@@ -1,12 +1,13 @@
 package com.dev.zine.service;
 
+import java.sql.Timestamp;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hibernate.sql.exec.ExecutionException;
-import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,13 +15,16 @@ import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
 import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.room.RoomResBody;
 import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.Members;
+import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.RoomMemberNotFound;
+import com.dev.zine.model.Message;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
@@ -40,22 +44,36 @@ public class RoomMembersService {
     private RoomService roomService;
     @Autowired
     private FirebaseMessagingService firebaseMessagingService;
+    @Autowired
+    private UserLastSeenService userLastSeenService;
+    @Autowired
+    private MessagesDAO messagesDAO;
 
-    public ResponseEntity<List<Rooms>> getRoomsByEmail(String email) {
+    public ResponseEntity<List<RoomResBody>> getRoomsByEmail(String email) {
         try{
             Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
+            
             if(opUser.isPresent()){
                 User user = opUser.get();
+                List<RoomResBody> roomList = new ArrayList<>();
+
                 List<RoomMembers> l = roomMembersDAO.findByUser(user);
-                List<Rooms> resRooms = new ArrayList<>();
                 for(RoomMembers rm: l){
                     Optional<Rooms> opRoom = roomService.getRoomInfo(rm.getRoom().getId());
                     if(opRoom.isPresent()){
                         Rooms room = opRoom.get();
-                        resRooms.add(room);
+                        Timestamp lastSeen = userLastSeenService.getLastSeen(user, room);
+                        Timestamp lastMessageTimestamp = messagesDAO.findFirstByRoomIdOrderByTimestampDesc(room).map(Message::getTimestamp).orElse(null);
+                        Long unreadMessages = messagesDAO.countUnreadMessages(room, lastSeen);
+                        RoomResBody body = new RoomResBody();
+                        body.setRoom(room);
+                        body.setLastMessageTimestamp(lastMessageTimestamp);
+                        body.setUnreadMessages(unreadMessages);
+                        body.setUserLastSeen(lastSeen);
+                        roomList.add(body);
                     }
                 }
-                return ResponseEntity.ok().body(resRooms);
+                return ResponseEntity.ok().body(roomList);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }

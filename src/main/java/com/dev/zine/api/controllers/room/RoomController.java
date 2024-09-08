@@ -78,7 +78,7 @@ public class RoomController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Rooms>> getRoomsByUser(@RequestParam String email) {
+    public ResponseEntity<?> getRoomsByUser(@RequestParam String email) {
         try{
             return roomMembersService.getRoomsByEmail(email);
         } catch( Exception e){
