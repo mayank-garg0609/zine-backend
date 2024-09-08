@@ -1,13 +1,13 @@
 package com.dev.zine.api.controllers.user;
 
 import java.util.Map;
-import java.sql.Timestamp;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.zine.api.model.user.RoomLastSeenInfo;
 import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserNotFound;
@@ -50,8 +50,8 @@ public class UserController {
     @GetMapping("/{userEmail}/{roomId}/last-seen")
     public ResponseEntity<?> getLastSeen(@PathVariable String userEmail, @PathVariable Long roomId) {
         try {
-            Timestamp lastSeen = lastSeenService.getLastSeen(userEmail, roomId);
-            return ResponseEntity.ok().body(Map.of("lastSeen", lastSeen));
+            RoomLastSeenInfo lastSeen = lastSeenService.getRoomLastSeenInfo(userEmail, roomId);
+            return ResponseEntity.ok().body(Map.of("info", lastSeen));
         } catch(UserNotFound | RoomDoesNotExist e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
