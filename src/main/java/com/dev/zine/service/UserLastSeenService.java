@@ -49,7 +49,7 @@ public class UserLastSeenService {
     public Timestamp getLastSeen(User user, Rooms room) throws UserNotFound, RoomDoesNotExist{
         return userLastSeenDAO.findByUserAndRoom(user, room)
                          .map(UserLastSeen::getLastSeen)
-                         .orElse(null);
+                         .orElse(new Timestamp(0));
     }
 
     public RoomLastSeenInfo getRoomLastSeenInfo(String userEmail, Long roomId) throws UserNotFound, RoomDoesNotExist{
