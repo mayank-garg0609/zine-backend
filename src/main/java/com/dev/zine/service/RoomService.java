@@ -1,28 +1,34 @@
 package com.dev.zine.service;
 
+import java.sql.Timestamp;
+
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dev.zine.api.model.room.RoomBody;
-import com.dev.zine.dao.RoomMembersDAO;
+import com.dev.zine.api.model.room.RoomResBody;
+import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomsDAO;
+import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.UserNotFound;
+import com.dev.zine.model.Message;
 import com.dev.zine.model.Rooms;
+import com.dev.zine.model.User;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class RoomService {
-
-    private RoomsDAO roomDAO;
-    private RoomMembersDAO roomMembersDAO;
-
     @Autowired
-    public RoomService(RoomsDAO roomsDAO, RoomMembersDAO roomMembersDAO) {
-        this.roomDAO = roomsDAO;
-        this.roomMembersDAO = roomMembersDAO;
-    }
+    private RoomsDAO roomDAO;
+    @Autowired
+    private UserLastSeenService userLastSeenService;
+    @Autowired
+    private MessagesDAO messagesDAO;
+    @Autowired
+    private UserDAO userDAO;
 
     public Rooms createRoom(RoomBody room) {
         Rooms newRoom = new Rooms();
@@ -83,11 +89,21 @@ public class RoomService {
         }
     }
 
-    public Rooms getAnnouncementInfo() throws RoomDoesNotExist{
-        List<Rooms> announcementRoom = roomDAO.findByType("announcement");
-        if(announcementRoom.size()==0 || announcementRoom.size()>1){
+    public RoomResBody getAnnouncementInfo(String email) throws RoomDoesNotExist, UserNotFound{
+        List<Rooms> announcementRoomList = roomDAO.findByType("announcement");
+        if(announcementRoomList.size()==0 || announcementRoomList.size()>1){
             throw new RoomDoesNotExist();
         }
-        return announcementRoom.get(0);
+        User user = userDAO.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFound());
+        Rooms announcementRoom = announcementRoomList.get(0);
+        Timestamp lastSeen = userLastSeenService.getLastSeen(user, announcementRoom);
+        Timestamp lastMessageTimestamp = messagesDAO.findFirstByRoomIdOrderByTimestampDesc(announcementRoom).map(Message::getTimestamp).orElse(null);
+        Long unreadMessages = messagesDAO.countUnreadMessages(announcementRoom, lastSeen);
+        RoomResBody body = new RoomResBody();
+        body.setRoom(announcementRoom);
+        body.setLastMessageTimestamp(lastMessageTimestamp);
+        body.setUnreadMessages(unreadMessages);
+        body.setUserLastSeen(lastSeen);
+        return body;
     } 
 }
