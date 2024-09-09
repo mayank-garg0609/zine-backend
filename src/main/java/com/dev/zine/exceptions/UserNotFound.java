@@ -5,6 +5,6 @@ public class UserNotFound extends Exception {
         super("User "+id.toString()+" does not exist.");
     }
     public UserNotFound() {
-        super("User does not exist.");
+        super("user-not-found");
     }
 }

@@ -19,7 +19,9 @@ import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
+import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
 import com.dev.zine.model.User;
 import com.dev.zine.service.UserService;
@@ -46,21 +48,29 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginBody loginBody) {
         String jwt = null;
         try {
             jwt = userService.loginUser(loginBody);
         } catch (UserNotVerifiedException ex) {
             LoginResponse response = new LoginResponse();
             response.setSuccess(false);
-            String reason = "USER_NOT_VERIFIED";
+            String reason = "user_not_verified";
             if (ex.isNewEmailSent()) {
-                reason += "_EMAIL_RESENT";
+                reason += "_email_resent";
             }
             response.setFailureReason(reason);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         } catch (EmailFailureException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            LoginResponse response = new LoginResponse();
+            response.setSuccess(false);
+            response.setFailureReason(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch(UserNotFound | IncorrectPasswordException e) {
+            LoginResponse response = new LoginResponse();
+            response.setSuccess(false);
+            response.setFailureReason(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

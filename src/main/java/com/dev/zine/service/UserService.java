@@ -14,6 +14,7 @@ import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
+import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
@@ -103,9 +104,7 @@ public class UserService {
     }
 
     @Transactional
-    public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
-
-
+    public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException, UserNotFound, IncorrectPasswordException {
         Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exists
         if (opUser.isPresent()) {
             User user = opUser.get();
@@ -131,9 +130,11 @@ public class UserService {
                     }
                     throw new UserNotVerifiedException(resend);
                 }
+            } else {
+                throw new IncorrectPasswordException();
             }
-        }
-        return null;
+        } 
+        throw new UserNotFound();
     }
 
     @Transactional
