@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.room.RoomBody;
+import com.dev.zine.api.model.room.RoomResBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.service.RoomMembersService;
@@ -33,7 +34,7 @@ public class RoomController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity createRoom(@Valid @RequestBody RoomBody room) {
+    public ResponseEntity<?> createRoom(@Valid @RequestBody RoomBody room) {
         System.out.println(room);
         try {
             Rooms newRoom = roomService.createRoom(room);
@@ -44,7 +45,7 @@ public class RoomController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity getRoom(@RequestParam Long roomId) {
+    public ResponseEntity<?> getRoom(@RequestParam Long roomId) {
         try {
             Optional<Rooms> room = roomService.getRoomInfo(roomId);
             if (room.isPresent())
@@ -58,12 +59,12 @@ public class RoomController {
     }
 
     @GetMapping("/announcement")
-    public ResponseEntity<?> getAnnouncementRoom() {
+    public ResponseEntity<?> getAnnouncementRoom(@RequestParam String email) {
         try {
-            Rooms room = roomService.getAnnouncementInfo();
+            RoomResBody room = roomService.getAnnouncementInfo(email);
             return ResponseEntity.ok().body(Map.of("announcementRoom", room));
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message",ex.getMessage()));
         }
     }
 
@@ -89,7 +90,7 @@ public class RoomController {
 
     @PostMapping("/delete")
 
-    public ResponseEntity delete(@RequestBody List<Long> roomId) {
+    public ResponseEntity<?> delete(@RequestBody List<Long> roomId) {
         System.out.println(roomId);
         try {
             System.out.println("hi1");
@@ -105,7 +106,7 @@ public class RoomController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity delete(@RequestParam Long roomId, @RequestBody RoomBody room) {
+    public ResponseEntity<?> delete(@RequestParam Long roomId, @RequestBody RoomBody room) {
         System.out.println(roomId);
         try {
             roomService.updateRoomInfo(roomId, room);
