@@ -25,7 +25,7 @@ public class Recruitment {
     @Column(name = "stage", unique = true)
     private Long stage;
 
-    @Column(name = "description")
+    @Column(name = "description", length=1000)
     private String description;
 
     @JsonIgnore
