@@ -3,6 +3,7 @@ package com.dev.zine.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
@@ -167,12 +168,16 @@ public class UserService {
     }
 
     public void resetPassword(PasswordResetBody body) {
-        String email = jwtService.getResetPasswordEmail(body.getToken());
-        Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
-        if (opUser.isPresent()) {
-            User user = opUser.get();
-            user.setPassword(encryptionService.encryptPassword(body.getPassword()));
-            userDAO.save(user);
+        try {
+            String email = jwtService.getResetPasswordEmail(body.getToken());
+            Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
+            if (opUser.isPresent()) {
+                User user = opUser.get();
+                user.setPassword(encryptionService.encryptPassword(body.getPassword()));
+                userDAO.save(user);
+            }
+        } catch(TokenExpiredException e) {
+            throw e;
         }
     }
 
