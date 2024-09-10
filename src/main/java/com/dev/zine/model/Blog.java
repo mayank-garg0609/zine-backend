@@ -27,7 +27,7 @@ public class Blog {
     @Column(name = "blog_name")
     private String blogName;
 
-    @Column(name = "blog_description")
+    @Column(name = "blog_description", length = 1000)
     private String blogDescription;
 
     @Column(name = "dp_url")

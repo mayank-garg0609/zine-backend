@@ -27,7 +27,7 @@ public class TaskInstanceComments {
     @JoinColumn(name = "task_instance_id")
     private TaskInstance taskInstance;
 
-    @Column(name = "message")
+    @Column(name = "message", length = 1000)
     private String message;
 
     @ManyToOne

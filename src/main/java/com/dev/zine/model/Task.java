@@ -29,7 +29,7 @@ public class Task {
     @Column(name = "subtitle")
     private String subtitle;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 1000)
     private String description;
 
     @Column(name = "dueDate")

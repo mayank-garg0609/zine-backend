@@ -20,7 +20,7 @@ public class Event {
     private long id;
 
     @NotNull
-    @Column(name = "description")
+    @Column(name = "description", length = 1024)
     private String description;
 
     @NotNull
