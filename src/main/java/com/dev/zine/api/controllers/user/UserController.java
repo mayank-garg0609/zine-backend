@@ -10,18 +10,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.zine.api.model.user.DeletionRequest;
 import com.dev.zine.api.model.user.RoomLastSeenInfo;
 import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.dao.RoomsDAO;
+import com.dev.zine.dao.UserDAO;
+import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Rooms;
+import com.dev.zine.model.User;
+import com.dev.zine.service.EncryptionService;
 import com.dev.zine.service.FirebaseMessagingService;
 import com.dev.zine.service.UserLastSeenService;
 import com.dev.zine.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -36,6 +42,10 @@ public class UserController {
     private RoomsDAO roomsDAO;
     @Autowired
     private FirebaseMessagingService firebaseMessagingService;
+    @Autowired
+    private UserDAO userDAO;
+    @Autowired
+    private EncryptionService encryptionService;
 
     @PutMapping("/token")
     public ResponseEntity<?> fcmUpdate(@RequestBody TokenUpdateBody body) throws InterruptedException, ExecutionException {
@@ -73,6 +83,25 @@ public class UserController {
         } catch(UserNotFound | RoomDoesNotExist e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
+    }
+
+    
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteUserAccount(@RequestBody DeletionRequest deletionRequest) throws UserNotFound, IncorrectPasswordException {
+        try {
+            User user = userDAO.findByEmailIgnoreCase(deletionRequest.getEmail()).orElseThrow(UserNotFound::new); 
+            
+            if (encryptionService.verifyPassword(deletionRequest.getPassword(), user.getPassword())) { 
+                userService.sendDeletionEmail(deletionRequest.getEmail(), deletionRequest.getDeletionOption());
+                return ResponseEntity.ok().body(null);
+            } else {
+                throw new IncorrectPasswordException();
+            }
+        } catch(UserNotFound| IncorrectPasswordException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        
     }
     
 }

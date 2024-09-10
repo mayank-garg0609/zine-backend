@@ -1,6 +1,8 @@
 package com.dev.zine.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.exceptions.TokenExpiredException;
@@ -25,6 +27,8 @@ import com.dev.zine.model.User;
 import com.dev.zine.model.UserToRole;
 import com.dev.zine.model.VerificationToken;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 
 import java.sql.Timestamp;
@@ -49,6 +53,8 @@ public class UserService {
     @Autowired
     private RoomMembersDAO roomMembersDAO;
     @Autowired FirebaseMessagingService firebaseMessagingService;
+    @Autowired
+    private JavaMailSender emailSender;
  
     /**
      * Attempts to register a user given the information provided.
@@ -102,6 +108,33 @@ public class UserService {
 
         user.getVerificationTokens().add(verificationToken); //adds token to the list
         return verificationToken;
+    }
+
+    public void sendDeletionEmail(String email, String deletionOption) {
+        String applicationNumber = UUID.randomUUID().toString();
+        String messageText = String.format(
+                "<html><body>" +
+                "<p>Dear user,</p>" +
+                "<p>Your account and associated data will be <strong>%s</strong> deleted in 30 days. If you wish to cancel this request, please contact support.</p>" +
+                "<p>Your application number is: <strong>%s</strong></p>" +
+                "<p>Thank you.</p>" +
+                "</body></html>",
+                deletionOption.equals("full") ? "fully" : "partially",
+                applicationNumber
+        );
+
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(email);
+            helper.setSubject("Account Deletion Notice");
+            helper.setText(messageText, true); // true indicates HTML content
+
+            emailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 
     @Transactional
