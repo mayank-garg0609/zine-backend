@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.dev.zine.service.JWTService;
 import com.dev.zine.service.UserService;
 
@@ -24,25 +25,29 @@ public class MiscController {
 
     @GetMapping("/reset-password")
     public String loadPage(@RequestParam("token") String token, Model model) {
-        String email = jwtService.getResetPasswordEmail(token);
-        model.addAttribute("email", email);
-        model.addAttribute("token", token);
-        if(env.equals("production")) {
-            model.addAttribute("url", prodUrl);
-        } else {
-            model.addAttribute("url", devUrl);
+        try {
+            String email = jwtService.getResetPasswordEmail(token);
+            model.addAttribute("email", email);
+            model.addAttribute("token", token);
+            if(env.equals("production")) {
+                model.addAttribute("url", prodUrl);
+            } else {
+                model.addAttribute("url", devUrl);
+            }
+            return "reset-pass";
+        } catch(TokenExpiredException e) {
+            return "token-expired";
         }
-        return "resetpass";
     }
 
     @GetMapping("/auth/verify")
     public String verifyEmail(@RequestParam String token, Model model) {
         if (userService.verifyUser(token)) {
             model.addAttribute("message", "Thank you for registering with us! Log into our app or website to continue.");
-            return "verifyemail";
+            return "verify-email";
         } else {
             model.addAttribute("message", "Error verifying email address. Please try again.");
-            return "verifyemail";
+            return "verify-email";
         }
     }
     
