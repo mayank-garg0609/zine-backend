@@ -4,8 +4,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.blogs.BlogBody;
 import com.dev.zine.api.model.blogs.BlogsListBody;
-import com.dev.zine.api.model.task.TaskListBody;
-import com.dev.zine.dao.BlogDAO;
 import com.dev.zine.exceptions.BlogNotFound;
 import com.dev.zine.model.Blog;
 import com.dev.zine.service.BlogService;
