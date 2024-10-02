@@ -55,6 +55,7 @@ public class UserService {
     @Autowired FirebaseMessagingService firebaseMessagingService;
     @Autowired
     private JavaMailSender emailSender;
+    private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
  
     /**
      * Attempts to register a user given the information provided.
@@ -144,7 +145,16 @@ public class UserService {
             User user = opUser.get();
             if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { //verify password
                 if (user.isEmailVerified()) {
-                    System.out.println(loginBody.getPushToken());
+                    // System.out.println(loginBody.getPushToken());
+                    if(user.getEmail().matches(regex2024)) {
+                        Role role2024 = roleDAO.findByPermission("2024").orElse(null);
+                        if(role2024 != null && !userToRoleDAO.existsByUserAndRole(user, role2024)) {
+                            UserToRole newMapping = new UserToRole();
+                            newMapping.setRole(role2024);
+                            newMapping.setUser(user);
+                            userToRoleDAO.save(newMapping);
+                        }
+                    }
                     if(loginBody.getPushToken() != null) {
                         updateToken(user, loginBody.getPushToken());
                     }
