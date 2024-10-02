@@ -100,6 +100,11 @@ public class RoleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-    
+
+    @PostMapping("/year/{roleName}")
+    public ResponseEntity<?> addUsersToYear(@PathVariable String roleName) {
+        int num = roleService.addUsersToYear(roleName);
+        return ResponseEntity.ok().body(Map.of("usersAdded", num));
+    }
     
 }
