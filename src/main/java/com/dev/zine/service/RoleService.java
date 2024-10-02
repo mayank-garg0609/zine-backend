@@ -30,7 +30,7 @@ public class RoleService {
 
     public Role createRole(RoleBody role) {
         Role newRole = new Role();
-        newRole.setPermission(role.getPermission());
+        newRole.setRoleName(role.getRole());
         roleDAO.save(newRole);
         return newRole;
     }
@@ -65,7 +65,7 @@ public class RoleService {
         try{
             Role existingRole = roleDAO.findById(id).orElse(null);
             if(existingRole != null){
-                existingRole.setPermission(role.getPermission());
+                existingRole.setRoleName(role.getRole());
                 roleDAO.save(existingRole);
                 return existingRole;
             } else{
@@ -119,5 +119,27 @@ public class RoleService {
                     return body;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public int addUsersToYear(String roleName) {
+        String pattern = roleName + "%@mnit.ac.in";
+        Role role =  roleDAO.findByRoleName(roleName).orElse(null);
+        int num = 0;
+
+        if(role != null) {
+            List<User> users = userDAO.findByEmailMatches(pattern);
+            for(User user: users) {
+                if(user.isEmailVerified() && !userToRoleDAO.existsByUserAndRole(user, role)) {
+                    UserToRole newMapping = new UserToRole();
+                    newMapping.setUser(user);
+                    newMapping.setRole(role);
+                    userToRoleDAO.save(newMapping);
+                    num += 1;
+                }
+            }
+        } 
+
+        return num;
+
     }
 }

@@ -83,14 +83,14 @@ public class UserService {
 
         userDAO.save(user);
 
-        String findRole = user.getEmail().substring(0, 4);
-        Role role = roleDAO.findByPermission(findRole).orElse(null);
-        if(role != null) {
-            UserToRole roleMapping = new UserToRole();
-            roleMapping.setRole(role);
-            roleMapping.setUser(user);
-            userToRoleDAO.save(roleMapping);
-        }
+        // String findRole = user.getEmail().substring(0, 4);
+        // Role role = roleDAO.findByRoleName(findRole).orElse(null);
+        // if(role != null) {
+        //     UserToRole roleMapping = new UserToRole();
+        //     roleMapping.setRole(role);
+        //     roleMapping.setUser(user);
+        //     userToRoleDAO.save(roleMapping);
+        // }
 
         return user; 
     }
@@ -147,7 +147,7 @@ public class UserService {
                 if (user.isEmailVerified()) {
                     // System.out.println(loginBody.getPushToken());
                     if(user.getEmail().matches(regex2024)) {
-                        Role role2024 = roleDAO.findByPermission("2024").orElse(null);
+                        Role role2024 = roleDAO.findByRoleName("2024").orElse(null);
                         if(role2024 != null && !userToRoleDAO.existsByUserAndRole(user, role2024)) {
                             UserToRole newMapping = new UserToRole();
                             newMapping.setRole(role2024);

@@ -25,8 +25,8 @@ public class Role {
     @Column(name = "role_id", nullable = false)
     private Long id;
 
-    @Column(name = "permission")
-    private String permission;
+    @Column(name = "roleName")
+    private String roleName;
 
     @JsonIgnore
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)

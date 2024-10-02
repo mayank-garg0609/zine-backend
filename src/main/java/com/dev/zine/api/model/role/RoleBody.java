@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class RoleBody {
-    private String permission;
+    private String role;
 }
