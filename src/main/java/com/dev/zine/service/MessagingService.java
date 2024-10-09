@@ -10,9 +10,12 @@ import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.messages.MessageBody;
 import com.dev.zine.dao.MessagesDAO;
+import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.UserNotFound;
+import com.dev.zine.exceptions.UserNotInRoom;
 import com.dev.zine.model.Message;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
@@ -23,19 +26,22 @@ public class MessagingService {
     private RoomsDAO roomsDAO;
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
+    private RoomMembersDAO roomMembersDAO;
  
     public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
         this.messagesDAO = messagesDAO;
         this.fcm = fcm;
         this.userDAO = userDAO;
         this.roomsDAO = roomsDAO;
-
     }
 
-    public Message sendMessage(MessageBody msg) throws NoSuchElementException {
+    public Message sendMessage(MessageBody msg) throws NoSuchElementException, RoomDoesNotExist, UserNotFound, UserNotInRoom {
+        Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow(() -> new RoomDoesNotExist());
+        User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow(() -> new UserNotFound(msg.getSentFrom()));
+        if(!roomMembersDAO.existsByUserAndRoom(sentFrom, room)) throw new UserNotInRoom(sentFrom.getId(), room.getId());
+
+        
         Message newMsg = new Message();
-        Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow();
-        User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow();
         newMsg.setType(msg.getType());
         newMsg.setContent(msg.getContent());
         newMsg.setContentUrl(msg.getContentUrl());
