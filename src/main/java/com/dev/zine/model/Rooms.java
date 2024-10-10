@@ -31,6 +31,9 @@ public class Rooms {
     @Column(name = "dpUrl")
     private String dpUrl;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
     @Column(name = "timestamp")
     private Timestamp timestamp;
 

@@ -17,4 +17,5 @@ public class RoomBody {
 
     private String description;
     private String dpUrl;
+    private String imagePath;
 }

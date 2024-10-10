@@ -87,9 +87,7 @@ public class RoomController {
         }
     }
     
-
     @PostMapping("/delete")
-
     public ResponseEntity<?> delete(@RequestBody List<Long> roomId) {
         System.out.println(roomId);
         try {

@@ -1,7 +1,5 @@
 package com.dev.zine.api.controllers.messages;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -22,7 +20,6 @@ public class StompController {
     @MessageMapping("/message")
     public void sendStompMessage(@Payload MessageBody msg) {
         try {
-            // msg.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
             Message message = messagingService.sendMessage(msg);
             simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
                 message);

@@ -9,6 +9,7 @@ import com.dev.zine.api.model.task.UserTaskAssignBody;
 import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
+import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.exceptions.UserNotFound;
@@ -17,6 +18,9 @@ import com.dev.zine.model.TaskInstance;
 import com.dev.zine.model.User;
 import com.dev.zine.service.MentorService;
 import com.dev.zine.service.TaskService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +29,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/tasks")
@@ -169,5 +175,27 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }
-    
+
+    @PostMapping("/{taskId}/role/{roleId}")
+    public ResponseEntity<?> mapTaskToRole(@PathVariable Long taskId, @PathVariable Long roleId) throws TaskNotFoundException, RoleNotFound{
+        try {
+            taskService.mapTaskToRole(taskId, roleId);
+            return ResponseEntity.ok().build();
+        } catch (TaskNotFoundException | RoleNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @DeleteMapping("/{taskId}/role/{roleId}")
+    public ResponseEntity<?> deleteTaskToRoleMap(@PathVariable("taskId") Long taskId, @PathVariable("roleId") Long roleId) throws TaskNotFoundException, RoleNotFound{
+        try {
+            if(taskService.deleteTaskToRoleMap(taskId, roleId)) {
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", "Task and role do not exist"));
+        } catch (TaskNotFoundException | RoleNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }    
 }

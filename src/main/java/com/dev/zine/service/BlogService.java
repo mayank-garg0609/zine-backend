@@ -31,6 +31,7 @@ public class BlogService {
         newBlog.setCreatedAt(Timestamp.ofTimeSecondsAndNanos(Instant.now().getEpochSecond(), Instant.now().getNano()));
         newBlog.setContent(blogBody.getContent());
         newBlog.setDpURL(blogBody.getDpURL());
+        newBlog.setImagePath(blogBody.getImagePath());
         newBlog.setParentBlog(parentBlog);
         blogDAO.save(newBlog);
         return newBlog;
