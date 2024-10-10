@@ -5,10 +5,13 @@ import com.dev.zine.api.model.role.RoleBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.dao.RoleDAO;
+import com.dev.zine.dao.TaskToRoleDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.model.Role;
+import com.dev.zine.model.Task;
+import com.dev.zine.model.TaskToRole;
 import com.dev.zine.model.User;
 import com.dev.zine.model.UserToRole;
 
@@ -27,6 +30,8 @@ public class RoleService {
     private UserDAO userDAO;
     @Autowired
     private UserToRoleDAO userToRoleDAO;
+    @Autowired
+    private TaskToRoleDAO taskToRoleDAO;
 
     public Role createRole(RoleBody role) {
         Role newRole = new Role();
@@ -141,5 +146,13 @@ public class RoleService {
 
         return num;
 
+    }
+
+    public List<Task> getTaskByRole(Long roleId) throws RoleNotFound {
+        Role role = roleDAO.findById(roleId).orElseThrow(() -> new RoleNotFound());
+        List<TaskToRole> taskToRoles = taskToRoleDAO.findByRoleId(role);
+        return taskToRoles.stream().map(taskRole -> {
+            return taskRole.getTaskId();
+        }).collect(Collectors.toList());
     }
 }
