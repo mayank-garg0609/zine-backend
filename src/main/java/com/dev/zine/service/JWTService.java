@@ -2,10 +2,13 @@ package com.dev.zine.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.dev.zine.model.User;
 
 import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -97,8 +100,18 @@ public class JWTService {
      * @return The username stored inside.
      */
     public String getEmail(String token) {
-        DecodedJWT jwt = JWT.require(algorithm).withIssuer(issuer).build().verify(token);
-        return jwt.getClaim(USERNAME_KEY).asString();
+        try {
+            DecodedJWT jwt = JWT.require(algorithm).withIssuer(issuer).build().verify(token);
+            return jwt.getClaim(USERNAME_KEY).asString();
+        } catch (JWTDecodeException e) {
+            System.out.println("JWT decoding failed: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to decode JWT token.");
+        } catch (JWTVerificationException ex) {
+            throw new IllegalArgumentException("Invalid JWT token.");
+        } catch (Exception e) {
+            System.out.println("An error occurred while processing the JWT: " + e.getMessage());
+            throw new IllegalArgumentException("An error occurred while decoding the JWT token.");
+        }
     }
 
 }
