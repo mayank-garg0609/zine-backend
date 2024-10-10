@@ -10,6 +10,7 @@ public class BlogBody {
     private String blogName;
     private String blogDescription;
     private String dpURL;
+    private String imagePath;
     @NotNull
     private Long parentBlog;
     private String content; 

@@ -45,6 +45,9 @@ public class User {
     @Column(name = "dp")
     private String dp;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id desc")

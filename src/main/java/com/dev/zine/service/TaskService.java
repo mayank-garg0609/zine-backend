@@ -9,17 +9,22 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.TaskDAO;
 import com.dev.zine.dao.TaskInstanceDAO;
+import com.dev.zine.dao.TaskToRoleDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserTaskAssignedDAO;
+import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
+import com.dev.zine.model.Role;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskInstance;
+import com.dev.zine.model.TaskToRole;
 import com.dev.zine.model.User;
 import com.dev.zine.utils.NullAwareBeanUtilsBean;
 import com.dev.zine.api.model.room.RoomBody;
@@ -47,6 +52,10 @@ public class TaskService {
     private UserTaskAssignedDAO userTaskAssignedDAO;
     @Autowired
     private MentorService mentorService;
+    @Autowired
+    private RoleDAO roleDAO;
+    @Autowired
+    private TaskToRoleDAO taskToRoleDAO;
 
     public Task createTask(TaskCreateBody task){
         Task newTask = new Task();
@@ -252,5 +261,25 @@ public class TaskService {
             return body;
         }).collect(Collectors.toList());
     }
+
+    public void mapTaskToRole(Long taskId, Long roleId) throws TaskNotFoundException, RoleNotFound{
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+        Role role = roleDAO.findById(roleId).orElseThrow(() -> new RoleNotFound());
+        if(taskToRoleDAO.existsByTaskIdAndRoleId(task, role)) return;
+        TaskToRole newMapping = new TaskToRole();
+        newMapping.setRoleId(role);
+        newMapping.setTaskId(task);
+        taskToRoleDAO.save(newMapping);
+    } 
+
+    public boolean deleteTaskToRoleMap(Long taskId, Long roleId) throws TaskNotFoundException, RoleNotFound{
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+        Role role = roleDAO.findById(roleId).orElseThrow(() -> new RoleNotFound());
+        if(taskToRoleDAO.existsByTaskIdAndRoleId(task, role)) {
+            taskToRoleDAO.deleteByTaskIdAndRoleId(task, role);
+            return true;
+        }
+        return false;
+    } 
 
 }

@@ -16,6 +16,7 @@ import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.model.Role;
+import com.dev.zine.model.Task;
 import com.dev.zine.service.RoleService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -106,5 +107,16 @@ public class RoleController {
         int num = roleService.addUsersToYear(roleName);
         return ResponseEntity.ok().body(Map.of("usersAdded", num));
     }
+
+    @GetMapping("/{roleId}/task")
+    public ResponseEntity<?> getTaskByRole(@PathVariable Long roleId) {
+        try {
+            List<Task> tasks = roleService.getTaskByRole(roleId);
+            return ResponseEntity.ok().body(Map.of("tasks", tasks));
+        } catch(RoleNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
     
 }
