@@ -37,6 +37,7 @@ public class RoomService {
         newRoom.setType(room.getType());
         newRoom.setDescription(room.getDescription());
         newRoom.setDpUrl(room.getDpUrl());
+        newRoom.setImagePath(room.getImagePath());
 
         roomDAO.save(newRoom);
         return newRoom;
@@ -76,6 +77,9 @@ public class RoomService {
                 }
                 if (room.getDpUrl() != null) {
                     existingRoom.setDpUrl(room.getDpUrl());
+                }
+                if(room.getImagePath() != null) {
+                    existingRoom.setImagePath(room.getImagePath());
                 }
 
                 return roomDAO.save(existingRoom);
