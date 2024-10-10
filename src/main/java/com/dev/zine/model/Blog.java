@@ -37,6 +37,9 @@ public class Blog {
     @Column(name = "dp_url")
     private String dpURL;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
     @Column(name= "created_at")
     private Timestamp createdAt;
 
