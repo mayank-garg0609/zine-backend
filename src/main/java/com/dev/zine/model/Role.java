@@ -31,4 +31,8 @@ public class Role {
     @JsonIgnore
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserToRole> userToRoles = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "roleId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskToRole> taskToRoles = new ArrayList<>();
 }

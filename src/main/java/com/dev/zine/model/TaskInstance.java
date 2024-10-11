@@ -60,4 +60,12 @@ public class TaskInstance {
     @JsonIgnore
     @OneToMany(mappedBy = "taskInstance", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskInstanceComments> taskInstanceComments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskInstance", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceLinks> instanceLinks = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskInstance", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceCheckpoints> instanceCheckpoints = new ArrayList<>();
 }
