@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
+    @PreAuthorize("hasRole('admin')")
     @PostMapping()
     public ResponseEntity<?> createBlog(@RequestBody BlogBody body) {
         try{
@@ -49,6 +51,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("hasAuthority('admin')")
     @PutMapping("/{blogId}")
     public ResponseEntity<?> updateBlog(@PathVariable Long blogId, @RequestBody BlogBody body) {
         try{
@@ -59,6 +62,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("hasAuthority('admin')")
     @DeleteMapping()
     public ResponseEntity<?> deleteBlog(@RequestBody BlogsListBody body) {
         if(blogService.deleteBlog(body.getBlogIds())){
