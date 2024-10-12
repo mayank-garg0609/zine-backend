@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class MessagingService {
     private RoomsDAO roomsDAO;
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
+    @Autowired
     private RoomMembersDAO roomMembersDAO;
  
     public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
