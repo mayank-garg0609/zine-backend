@@ -13,6 +13,7 @@ import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.exceptions.UserNotFound;
+import com.dev.zine.model.Role;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskInstance;
 import com.dev.zine.model.User;
@@ -80,6 +81,16 @@ public class TaskController {
         }
         else{
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/{taskId}/assigned-roles")
+    public ResponseEntity<?> getAssignedRoles(@PathVariable Long taskId) {
+        try {
+            List<Role> roles = taskService.getAssignedRoles(taskId);
+            return ResponseEntity.ok().body(Map.of("roles", roles));
+        } catch(TaskNotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

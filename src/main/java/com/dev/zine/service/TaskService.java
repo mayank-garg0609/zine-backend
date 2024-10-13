@@ -180,6 +180,14 @@ public class TaskService {
         }
     }
 
+    public List<Role> getAssignedRoles(Long taskId) throws TaskNotFoundException{
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+        List<TaskToRole> taskToRoles = taskToRoleDAO.findByTaskId(task);
+        return taskToRoles.stream().map(taskToRole -> {
+            return taskToRole.getRoleId();
+        }).collect(Collectors.toList());
+    }
+
     public boolean deleteInstance(Long taskInstance){
         try{
             taskInstanceDAO.deleteById(taskInstance);
