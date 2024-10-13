@@ -19,7 +19,6 @@ import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.model.Role;
 import com.dev.zine.model.Task;
-import com.dev.zine.model.User;
 import com.dev.zine.service.RoleService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,9 +58,9 @@ public class RoleController {
    
     @GetMapping("/{roleId}")
     // @PreAuthorize("hasAuthority('admin')")
-    public ResponseEntity<?> getRole(@PathVariable Long roleId, @AuthenticationPrincipal User user) throws RoleNotFound{
+    public ResponseEntity<?> getRole(@PathVariable Long roleId) throws RoleNotFound{
         try{
-            System.out.println(user.getType());
+            // System.out.println(user.getType());
             Role r = roleService.getRole(roleId);
             return ResponseEntity.ok().body(Map.of("role",r));
         } catch(RoleNotFound e){
