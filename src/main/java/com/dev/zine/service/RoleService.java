@@ -35,7 +35,7 @@ public class RoleService {
 
     public Role createRole(RoleBody role) {
         Role newRole = new Role();
-        newRole.setRoleName(role.getRole());
+        newRole.setRoleName(role.getRoleName());
         roleDAO.save(newRole);
         return newRole;
     }
@@ -70,7 +70,7 @@ public class RoleService {
         try{
             Role existingRole = roleDAO.findById(id).orElse(null);
             if(existingRole != null){
-                existingRole.setRoleName(role.getRole());
+                existingRole.setRoleName(role.getRoleName());
                 roleDAO.save(existingRole);
                 return existingRole;
             } else{
