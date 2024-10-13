@@ -17,6 +17,7 @@ import com.dev.zine.api.model.role.RolesListBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
 import com.dev.zine.exceptions.RoleNotFound;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Role;
 import com.dev.zine.model.Task;
 import com.dev.zine.service.RoleService;
@@ -129,6 +130,14 @@ public class RoleController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-    
-    
+
+    @DeleteMapping("/{roleId}/user/{userEmail}")
+    public ResponseEntity<?> removeUserFromRole(@PathVariable Long roleId, @PathVariable String userEmail) {
+        try {
+            roleService.removeUserFromRole(userEmail, roleId);
+            return ResponseEntity.ok().build();
+        } catch(UserNotFound | RoleNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
