@@ -9,12 +9,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.dev.zine.api.model.task.CheckpointCreateBody;
+import com.dev.zine.api.model.task.CheckpointResBody;
 import com.dev.zine.api.model.task.LinkCreateBody;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
-import com.dev.zine.model.InstanceCheckpoints;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.InstanceLinks;
+import com.dev.zine.model.TaskInstance;
 import com.dev.zine.service.CheckpointsService;
 import com.dev.zine.service.LinksService;
+import com.dev.zine.service.TaskService;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,11 +32,22 @@ public class InstanceController {
     private CheckpointsService checkpointsService;
     @Autowired
     private LinksService linksService;
+    @Autowired
+    private TaskService taskService;
 
+    @GetMapping()
+    public ResponseEntity<?> getAllInstances() {
+        try {
+            List<TaskInstance> allInstances = taskService.getEveryInstance();
+            return ResponseEntity.ok().body(Map.of("instances", allInstances));
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     @GetMapping("/{instanceId}/checkpoints")
     public ResponseEntity<?> getCheckpoints(@PathVariable Long instanceId) {
         try {
-            List<InstanceCheckpoints> checkpoints = checkpointsService.getCheckpoints(instanceId);
+            List<CheckpointResBody> checkpoints = checkpointsService.getCheckpoints(instanceId);
             return ResponseEntity.ok().body(Map.of("checkpoints", checkpoints));
         } catch (TaskInstanceNotFound e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -42,9 +57,9 @@ public class InstanceController {
     @PostMapping("/{instanceId}/checkpoints")
     public ResponseEntity<?> addCheckpoint(@RequestBody CheckpointCreateBody body, @PathVariable Long instanceId) {
         try {
-            InstanceCheckpoints checkpoint = checkpointsService.addCheckpoint(instanceId, body);
+            CheckpointResBody checkpoint = checkpointsService.addCheckpoint(instanceId, body);
             return ResponseEntity.ok().body(Map.of("checkpoint", checkpoint));
-        } catch (TaskInstanceNotFound e) {
+        } catch (TaskInstanceNotFound | UserNotFound e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }

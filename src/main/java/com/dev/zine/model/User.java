@@ -11,7 +11,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "Users")
 @Data
-@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned", "taskInstanceComments"})
+@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned", "taskInstanceComments", "instanceCheckpoints", "instanceLinks"})
 public class User {
 
     @Id
@@ -64,4 +64,12 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskInstanceComments> taskInstanceComments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sentFrom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceCheckpoints> instanceCheckpoints = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sentFrom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceLinks> instanceLinks = new ArrayList<>();
 }

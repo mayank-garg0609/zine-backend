@@ -7,9 +7,12 @@ import java.util.List;
 import org.hibernate.sql.exec.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dev.zine.api.model.task.TaskInstanceCreateBody;
+import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.DeletionRequest;
 import com.dev.zine.api.model.user.RoomLastSeenInfo;
 import com.dev.zine.api.model.user.TokenUpdateBody;
@@ -17,11 +20,13 @@ import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
 import com.dev.zine.service.EncryptionService;
 import com.dev.zine.service.FirebaseMessagingService;
+import com.dev.zine.service.TaskService;
 import com.dev.zine.service.UserLastSeenService;
 import com.dev.zine.service.UserService;
 
@@ -46,6 +51,8 @@ public class UserController {
     private UserDAO userDAO;
     @Autowired
     private EncryptionService encryptionService;
+    @Autowired
+    private TaskService taskService;
 
     @PutMapping("/token")
     public ResponseEntity<?> fcmUpdate(@RequestBody TokenUpdateBody body) throws InterruptedException, ExecutionException {
@@ -102,6 +109,17 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
         
+    }
+
+    @PostMapping("/tasks/{taskId}/instance") 
+    public ResponseEntity<?> chooseTask(@PathVariable Long taskId, @AuthenticationPrincipal User user, @RequestBody TaskInstanceCreateBody body) {
+        try {
+            if(user==null) throw new UserNotFound();
+            UserTasksBody resBody = taskService.chooseTaskByUser(taskId, user, body);
+            return ResponseEntity.ok().body(Map.of("instance", resBody));
+        } catch(UserNotFound | TaskNotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
     
 }

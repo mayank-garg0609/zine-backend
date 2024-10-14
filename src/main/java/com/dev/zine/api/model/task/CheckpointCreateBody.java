@@ -6,4 +6,5 @@ import lombok.Data;
 public class CheckpointCreateBody {
     private Boolean remark;
     private String content;
+    private Long sentFromId;
 }
