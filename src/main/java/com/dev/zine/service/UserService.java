@@ -260,4 +260,16 @@ public class UserService {
         updateToken(user, body.getToken());
     }
 
+    public String toggleRegistration(User user) {
+        try{
+            if(user.isRegistered()) return "ALREADY_REGISTERED"; 
+            if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
+            user.setRegistered(true);
+            userDAO.save(user);
+            return "SUCCESS";
+        } catch(Exception e) {
+            return "FAILED";
+        }
+    }
+
 }
