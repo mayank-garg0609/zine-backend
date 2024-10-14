@@ -93,7 +93,7 @@ public class AuthController {
             userService.forgotPassword(email);
             return ResponseEntity.ok().build();
         } catch (EmailNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("messsage", ex.getMessage()));
         } catch (EmailFailureException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
