@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.dev.zine.api.model.task.CheckpointCreateBody;
 import com.dev.zine.api.model.task.CheckpointResBody;
 import com.dev.zine.api.model.task.LinkCreateBody;
+import com.dev.zine.api.model.task.LinkResBody;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.UserNotFound;
-import com.dev.zine.model.InstanceLinks;
 import com.dev.zine.model.TaskInstance;
 import com.dev.zine.service.CheckpointsService;
 import com.dev.zine.service.LinksService;
@@ -67,7 +67,7 @@ public class InstanceController {
     @GetMapping("/{instanceId}/links")
     public ResponseEntity<?> getLinks(@PathVariable Long instanceId) {
         try {
-            List<InstanceLinks> links = linksService.getLinks(instanceId);
+            List<LinkResBody> links = linksService.getLinks(instanceId);
             return ResponseEntity.ok().body(Map.of("links", links));
         } catch (TaskInstanceNotFound e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -77,9 +77,9 @@ public class InstanceController {
     @PostMapping("/{instanceId}/links")
     public ResponseEntity<?> addLink(@RequestBody LinkCreateBody body, @PathVariable Long instanceId) {
         try {
-            InstanceLinks link = linksService.addLink(instanceId, body);
+            LinkResBody link = linksService.addLink(instanceId, body);
             return ResponseEntity.ok().body(Map.of("link", link));
-        } catch (TaskInstanceNotFound e) {
+        } catch (TaskInstanceNotFound | UserNotFound e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
