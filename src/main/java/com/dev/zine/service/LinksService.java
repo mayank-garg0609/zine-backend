@@ -4,17 +4,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.task.LinkCreateBody;
+import com.dev.zine.api.model.task.LinkResBody;
 import com.dev.zine.dao.InstanceLinksDAO;
 import com.dev.zine.dao.TaskInstanceDAO;
+import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.LinkNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.InstanceLinks;
 import com.dev.zine.model.TaskInstance;
+import com.dev.zine.model.User;
 import com.dev.zine.utils.NullAwareBeanUtilsBean;
 
 @Service
@@ -25,30 +30,49 @@ public class LinksService {
     private TaskInstanceDAO instanceDAO;
     @Autowired
     private FirebaseMessagingService fcm;
+    @Autowired
+    private UserDAO userDAO;
 
-    public InstanceLinks addLink(Long instanceId, LinkCreateBody body) throws TaskInstanceNotFound{
+    public LinkResBody addLink(Long instanceId, LinkCreateBody body) throws TaskInstanceNotFound, UserNotFound{
         TaskInstance instance = instanceDAO.findById(instanceId).orElseThrow(() -> new TaskInstanceNotFound(instanceId));
+        User user = userDAO.findById(body.getSentFromId()).orElseThrow(() -> new UserNotFound());
 
         InstanceLinks link = new InstanceLinks();
         link.setLink(body.getLink());
         link.setType(body.getType());
         link.setTaskInstance(instance);
         link.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
-
+        link.setSentFrom(user);
         linksDAO.save(link);
 
         String prefix = "[LINK]";
         fcm.sendNotificationToTopic("room" + instance.getRoomId().getId()+"", instance.getRoomId().getName(),
                 prefix + ": " + body.getLink(), null);
         
-        return link;
+        LinkResBody resBody = new LinkResBody();
+        resBody.setId(link.getId());
+        resBody.setLink(link.getLink());
+        resBody.setSentFrom(link.getSentFrom().getName());
+        resBody.setSentFromId(link.getSentFrom().getId());
+        resBody.setTimestamp(link.getTimestamp());
+        resBody.setType(link.getType());
+        return resBody;
 
     }
 
-    public List<InstanceLinks> getLinks(Long instanceId) throws TaskInstanceNotFound {
+    public List<LinkResBody> getLinks(Long instanceId) throws TaskInstanceNotFound {
         TaskInstance instance = instanceDAO.findById(instanceId).orElseThrow(() -> new TaskInstanceNotFound(instanceId));
         List<InstanceLinks> links = linksDAO.findByTaskInstance(instance);
-        return links;
+        return links.stream().map(link -> {
+            LinkResBody resBody = new LinkResBody();
+            resBody.setId(link.getId());
+            resBody.setLink(link.getLink());
+            resBody.setSentFrom(link.getSentFrom().getName());
+            resBody.setSentFromId(link.getSentFrom().getId());
+            resBody.setTimestamp(link.getTimestamp());
+            resBody.setType(link.getType());
+            return resBody;
+        }).collect(Collectors.toList());
     }
 
     public InstanceLinks updateLink(Long id, LinkCreateBody update) throws LinkNotFound{
