@@ -8,7 +8,6 @@ import com.dev.zine.api.model.comments.CommentResponse;
 import com.dev.zine.exceptions.CommentNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.UserNotFound;
-import com.dev.zine.model.TaskInstanceComments;
 import com.dev.zine.service.InstanceCommentsService;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class CommentController {
     @PostMapping()
     public ResponseEntity<?> postComment(@RequestParam Long instance, @RequestBody CommentCreateBody body) {
         try{
-            TaskInstanceComments comment = commentsService.createComment(instance, body); 
+            CommentResponse comment = commentsService.createComment(instance, body); 
             return ResponseEntity.ok().body(Map.of("comment", comment));
         } catch(TaskInstanceNotFound e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
