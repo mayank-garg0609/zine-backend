@@ -66,6 +66,19 @@ public class TaskController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    @GetMapping("/user/mapped-tasks") 
+    public ResponseEntity<?> getByRoles(@AuthenticationPrincipal User user) {
+        try {
+            if( user == null) {
+                throw new UserNotFound(null);
+            }
+            List<Task> tasks = taskService.getTasksForUserRoles(user);
+            return ResponseEntity.ok().body(Map.of("tasks", tasks));
+        } catch(UserNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
     
 
     @PostMapping()

@@ -34,6 +34,10 @@ public class InstanceLinks {
     @Column(name = "timestamp")
     private Timestamp timestamp;
 
+    @ManyToOne
+    @JoinColumn(name = "sent_from", nullable = false)
+    private User sentFrom;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "task_instance", nullable=false)
