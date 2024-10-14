@@ -121,6 +121,23 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+    @PostMapping("/register/workshop")
+    public ResponseEntity<?> registerWorkshop(@AuthenticationPrincipal User user) {
+        try {
+            String res = userService.toggleRegistration(user);
+            if(res=="ALREADY_REGISTERED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is already registered"));
+            } else if(res=="NOT_EMAIL_VERIFIED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is not email verified"));
+            } else if(res=="SUCCESS") {
+                return ResponseEntity.ok().body(Map.of("message","success"));
+            } 
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        }
+    }
     
 }
 
