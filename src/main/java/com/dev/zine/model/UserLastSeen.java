@@ -10,11 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "user_last_seen")
+@Table(name = "user_last_seen",uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "room_id"})})
 @NoArgsConstructor
 @Data
 public class UserLastSeen {

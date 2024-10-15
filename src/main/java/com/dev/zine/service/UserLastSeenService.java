@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.dev.zine.api.model.user.RoomLastSeenInfo;
@@ -33,9 +34,15 @@ public class UserLastSeenService {
     public void updateLastSeen(String userEmail, Long roomId) throws UserNotFound, RoomDoesNotExist{
         User user = userDAO.findByEmailIgnoreCase(userEmail).orElseThrow(() -> new UserNotFound());
         Rooms room = roomsDAO.findById(roomId).orElseThrow(() -> new RoomDoesNotExist());
-        UserLastSeen userLastSeen = userLastSeenDAO.findByUserAndRoom(user, room).orElse(new UserLastSeen(user, room));
-        userLastSeen.setLastSeen(Timestamp.valueOf(LocalDateTime.now()));;
-        userLastSeenDAO.save(userLastSeen);
+        try {
+            UserLastSeen userLastSeen = userLastSeenDAO.findByUserAndRoom(user, room)
+                    .orElse(new UserLastSeen(user, room));
+            userLastSeen.setLastSeen(Timestamp.valueOf(LocalDateTime.now()));
+            userLastSeenDAO.save(userLastSeen);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("Duplicate user-room pair detected", e);
+        }
     }
 
     public Timestamp getLastSeen(String userEmail, Long roomId) throws UserNotFound, RoomDoesNotExist{
