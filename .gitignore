@@ -35,3 +35,4 @@ build/
 env
 .env
 zine-firebase-admin.json
+src/main/resources/application.properties

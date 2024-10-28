@@ -9,4 +9,5 @@ import com.dev.zine.model.TaskInstance;
 
 public interface InstanceCheckpointsDAO extends ListCrudRepository<InstanceCheckpoints, Long>{
     List<InstanceCheckpoints> findByTaskInstance(TaskInstance taskInstance);
+    Long countByTaskInstance(TaskInstance taskInstance);
 }

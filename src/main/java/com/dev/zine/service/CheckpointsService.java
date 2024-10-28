@@ -97,4 +97,9 @@ public class CheckpointsService {
         }
     }
 
+    public long getCheckpointCount(TaskInstance instance) {
+
+        return checkpointsDAO.countByTaskInstance(instance);
+    }
+
 }

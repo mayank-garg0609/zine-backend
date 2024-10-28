@@ -3,15 +3,12 @@ package com.dev.zine.api.controllers.instance;
 import java.util.List;
 import java.util.Map;
 
+import com.dev.zine.api.model.task.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.dev.zine.api.model.task.CheckpointCreateBody;
-import com.dev.zine.api.model.task.CheckpointResBody;
-import com.dev.zine.api.model.task.LinkCreateBody;
-import com.dev.zine.api.model.task.LinkResBody;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.TaskInstance;
@@ -38,7 +35,7 @@ public class InstanceController {
     @GetMapping()
     public ResponseEntity<?> getAllInstances() {
         try {
-            List<TaskInstance> allInstances = taskService.getEveryInstance();
+            List<TaskInstanceCheckpoint> allInstances = taskService.getEveryInstance();
             return ResponseEntity.ok().body(Map.of("instances", allInstances));
         } catch(Exception e) {
             return ResponseEntity.internalServerError().build();

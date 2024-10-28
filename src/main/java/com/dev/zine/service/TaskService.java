@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.dev.zine.api.model.task.*;
+import com.dev.zine.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,22 +21,12 @@ import com.dev.zine.dao.UserTaskAssignedDAO;
 import com.dev.zine.exceptions.RoleNotFound;
 import com.dev.zine.exceptions.TaskInstanceNotFound;
 import com.dev.zine.exceptions.TaskNotFoundException;
-import com.dev.zine.model.Role;
-import com.dev.zine.model.RoomMembers;
-import com.dev.zine.model.Rooms;
-import com.dev.zine.model.Task;
-import com.dev.zine.model.TaskInstance;
-import com.dev.zine.model.TaskToRole;
-import com.dev.zine.model.User;
 import com.dev.zine.utils.NullAwareBeanUtilsBean;
 import com.dev.zine.api.model.room.RoomBody;
-import com.dev.zine.api.model.task.TaskCreateBody;
-import com.dev.zine.api.model.task.TaskInstanceCreateBody;
-import com.dev.zine.api.model.task.UserTaskAssignBody;
-import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.user.UserResponseBody;
-import com.dev.zine.model.UserTaskAssigned;
+
+//import static java.util.stream.Nodes.collect;
 
 @Service
 public class TaskService {
@@ -58,6 +50,8 @@ public class TaskService {
     private TaskToRoleDAO taskToRoleDAO;
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private CheckpointsService checkpointsService;
 
     public Task createTask(TaskCreateBody task){
         Task newTask = new Task();
@@ -260,8 +254,11 @@ public class TaskService {
 
     public List<UserTasksBody> getUserInstances(User user) {
         List<UserTaskAssigned> assigned = userTaskAssignedDAO.findByUserId(user);
+//        Long instanceId= taskAssigned.getTaskInstanceId().getTaskInstanceId();
         return assigned.stream().map(taskAssigned -> {
             UserTasksBody body = new UserTasksBody();
+            TaskInstance taskInstance = taskAssigned.getTaskInstanceId();
+
             body.setCompletionPercentage(taskAssigned.getTaskInstanceId().getCompletionPercentage());
             body.setName(taskAssigned.getTaskInstanceId().getName());
             body.setStatus(taskAssigned.getTaskInstanceId().getStatus());
@@ -270,6 +267,8 @@ public class TaskService {
             body.setTask(taskAssigned.getTaskInstanceId().getTaskId());
             body.setRoomId(taskAssigned.getTaskInstanceId().getRoomId().getId());
             body.setRoomName(taskAssigned.getTaskInstanceId().getRoomId().getName());
+            body.setNumberOfCheckpoint(checkpointsService.getCheckpointCount(taskInstance));
+
             return body;
         }).collect(Collectors.toList());
     }
@@ -331,8 +330,30 @@ public class TaskService {
         return resBody;
     }
 
-    public List<TaskInstance> getEveryInstance() {
-        return taskInstanceDAO.findAll();
+    public List<TaskInstanceCheckpoint> getEveryInstance() {
+
+        List<TaskInstance> instance = taskInstanceDAO.findAll();
+
+        List<TaskInstanceCheckpoint> result = new ArrayList<>();
+        for(TaskInstance taskInstance: instance) {
+            TaskInstanceCheckpoint body = new TaskInstanceCheckpoint();
+            body.setId(taskInstance.getId());
+            body.setTaskId(taskInstance.getTaskId());
+            body.setRoomId(taskInstance.getRoomId());
+            body.setType(taskInstance.getType());
+            body.setName(taskInstance.getName());
+            body.setStatus(taskInstance.getStatus());
+            body.setCompletionPercentage(taskInstance.getCompletionPercentage());
+            body.setUserTaskAssigned(taskInstance.getUserTaskAssigned());
+            body.setTaskInstanceComments(taskInstance.getTaskInstanceComments());
+            body.setInstanceLinks(taskInstance.getInstanceLinks());
+            body.setInstanceCheckpoints(taskInstance.getInstanceCheckpoints());
+            body.setCheckpointCount(checkpointsService.getCheckpointCount(taskInstance));
+
+            result.add(body);
+        }
+        return result;
+
     }
 
 }

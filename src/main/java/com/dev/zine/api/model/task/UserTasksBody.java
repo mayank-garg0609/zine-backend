@@ -14,4 +14,5 @@ public class UserTasksBody {
     private Task task;
     private Long roomId;
     private String roomName;
+    private Long NumberOfCheckpoint;
 }
