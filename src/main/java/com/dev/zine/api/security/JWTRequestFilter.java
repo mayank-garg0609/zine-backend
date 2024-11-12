@@ -59,6 +59,8 @@ public class JWTRequestFilter extends OncePerRequestFilter {
                 }
             } catch (JWTDecodeException ex) {
                 System.out.println("caught filet error");
+            } catch(IllegalArgumentException e) {
+                System.out.println("failed");
             }
         }
         filterChain.doFilter(request, response);

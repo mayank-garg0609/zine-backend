@@ -10,6 +10,7 @@ import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
 import com.dev.zine.api.model.user.TokenUpdateBody;
+import com.dev.zine.dao.HackathonRegistrationDAO;
 import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.UserDAO;
@@ -21,6 +22,7 @@ import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
+import com.dev.zine.model.HackathonRegistrations;
 import com.dev.zine.model.Role;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.User;
@@ -55,6 +57,8 @@ public class UserService {
     @Autowired FirebaseMessagingService firebaseMessagingService;
     @Autowired
     private JavaMailSender emailSender;
+    @Autowired
+    private HackathonRegistrationDAO hackathonDAO;
     private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
  
     /**
@@ -262,6 +266,7 @@ public class UserService {
 
     public String toggleRegistration(User user) {
         try{
+            if(user == null) return "TOKEN_MISSING";
             if(user.isRegistered()) return "ALREADY_REGISTERED"; 
             if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
             user.setRegistered(true);
@@ -270,6 +275,25 @@ public class UserService {
         } catch(Exception e) {
             return "FAILED";
         }
+    }
+
+    public String registerHackthon(User user) {
+        try {
+            if(user == null) return "TOKEN_MISSING";
+            if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
+            if(hackathonDAO.existsByUserId(user)) return "ALREADY_REGISTERED";
+            
+            HackathonRegistrations newReg = new HackathonRegistrations();
+            newReg.setUserId(user);
+            hackathonDAO.save(newReg);
+            return "SUCCESS";
+        } catch(Exception e) {
+            return "FAILED";
+        }
+    }
+
+    public boolean checkHackthonRegistration(User user) {
+        return hackathonDAO.existsByUserId(user);
     }
 
 }
