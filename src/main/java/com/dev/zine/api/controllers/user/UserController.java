@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.zine.api.model.images.ImagesUploadRes;
 import com.dev.zine.api.model.task.TaskInstanceCreateBody;
 import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.DeletionRequest;
@@ -19,6 +22,7 @@ import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.IncorrectPasswordException;
+import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.exceptions.UserNotFound;
@@ -182,7 +186,16 @@ public class UserController {
             return ResponseEntity.internalServerError().body(Map.of("message","failed"));
         }
     }
-    
-    
+
+    @PostMapping("/update-dp")
+    public ResponseEntity<?> uploadUserDp(@AuthenticationPrincipal User user, @RequestParam MultipartFile file, @RequestParam boolean delete) {
+        try {
+            ImagesUploadRes res = userService.updateDp(user, file, delete);
+            return ResponseEntity.ok().body(res);
+        } catch(UserNotFound | MediaUploadFailed e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
 }
 
