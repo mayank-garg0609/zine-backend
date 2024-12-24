@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.zine.api.model.images.ImagesUploadRes;
 import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.api.model.room.RoomResBody;
+import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.service.RoomMembersService;
@@ -117,4 +120,15 @@ public class RoomController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
+
+    @PostMapping("/update-dp")
+    public ResponseEntity<?> changeRoomDp(@RequestParam MultipartFile file, @RequestParam Long id, @RequestParam boolean delete) {
+        try {
+            ImagesUploadRes url = roomService.updateRoomDp(file, id, delete);
+            return ResponseEntity.ok().body(url);
+        } catch(RoomDoesNotExist | MediaUploadFailed e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
 }
