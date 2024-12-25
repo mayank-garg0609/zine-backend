@@ -1,21 +1,29 @@
 package com.dev.zine.service;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.dev.zine.api.model.images.ImagesUploadRes;
 import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.api.model.room.RoomResBody;
+import com.dev.zine.dao.MediaDAO;
 import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
+import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserNotFound;
+import com.dev.zine.model.Media;
 import com.dev.zine.model.Message;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
+import com.dev.zine.utils.CloudinaryUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -29,6 +37,10 @@ public class RoomService {
     private MessagesDAO messagesDAO;
     @Autowired
     private UserDAO userDAO;
+    @Autowired
+    private CloudinaryUtil imgUtil;
+    @Autowired
+    private MediaDAO mediaDAO;
 
     public Rooms createRoom(RoomBody room) {
         Rooms newRoom = new Rooms();
@@ -110,4 +122,37 @@ public class RoomService {
         body.setUserLastSeen(lastSeen);
         return body;
     } 
+
+    public ImagesUploadRes updateRoomDp(MultipartFile img, Long roomId, boolean delete) throws RoomDoesNotExist, MediaUploadFailed{
+        Rooms room = roomDAO.findById(roomId).orElseThrow(() -> new RoomDoesNotExist());
+        try {
+            ImagesUploadRes res = new ImagesUploadRes();
+            if(room.getDpUrl() != null) {
+                Optional<Media> oldImage = mediaDAO.findByUrl(room.getDpUrl());
+                if(oldImage.isPresent()){
+                    mediaDAO.delete(oldImage.get());
+                    imgUtil.deleteImage(oldImage.get().getPublicId());
+                }
+            }
+            if(delete) {
+                room.setDpUrl(null);
+                roomDAO.save(room);
+                res.setMessage("Room DP successfully deleted!");
+                return res;
+            } else {
+                res = imgUtil.uploadFile(img, "room-dp");
+                Media newImage = new Media();
+                newImage.setPublicId(res.getPublicId());
+                newImage.setUrl(res.getUrl());
+                mediaDAO.save(newImage);
+    
+                room.setDpUrl(res.getUrl());
+                roomDAO.save(room);
+                return res;
+            }
+
+        } catch(IOException e) {
+            throw new MediaUploadFailed(e.getMessage());
+        }
+    }
 }

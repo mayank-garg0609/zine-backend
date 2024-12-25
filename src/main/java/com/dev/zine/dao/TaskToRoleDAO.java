@@ -12,4 +12,5 @@ public interface TaskToRoleDAO extends ListCrudRepository<TaskToRole, Long> {
     void deleteByTaskIdAndRoleId(Task task, Role role);
     boolean existsByTaskIdAndRoleId(Task task, Role role);
     List<TaskToRole> findByRoleId(Role roleId);
+    List<TaskToRole> findByTaskId(Task taskId);
 }

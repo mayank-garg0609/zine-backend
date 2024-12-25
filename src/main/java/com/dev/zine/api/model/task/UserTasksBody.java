@@ -12,4 +12,6 @@ public class UserTasksBody {
     private String status;
     private Integer completionPercentage;
     private Task task;
+    private Long roomId;
+    private String roomName;
 }

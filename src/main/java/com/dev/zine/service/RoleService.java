@@ -9,6 +9,7 @@ import com.dev.zine.dao.TaskToRoleDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.exceptions.RoleNotFound;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Role;
 import com.dev.zine.model.Task;
 import com.dev.zine.model.TaskToRole;
@@ -17,6 +18,7 @@ import com.dev.zine.model.UserToRole;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,7 @@ public class RoleService {
 
     public Role createRole(RoleBody role) {
         Role newRole = new Role();
-        newRole.setRoleName(role.getRole());
+        newRole.setRoleName(role.getRoleName());
         roleDAO.save(newRole);
         return newRole;
     }
@@ -70,7 +72,7 @@ public class RoleService {
         try{
             Role existingRole = roleDAO.findById(id).orElse(null);
             if(existingRole != null){
-                existingRole.setRoleName(role.getRole());
+                existingRole.setRoleName(role.getRoleName());
                 roleDAO.save(existingRole);
                 return existingRole;
             } else{
@@ -154,5 +156,19 @@ public class RoleService {
         return taskToRoles.stream().map(taskRole -> {
             return taskRole.getTaskId();
         }).collect(Collectors.toList());
+    }
+
+    public List<Role> getUserRoles(User user) {
+        List<UserToRole> userToRoles = userToRoleDAO.findByUser(user);
+        return userToRoles.stream().map(userToRole -> {
+            return userToRole.getRole();
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void removeUserFromRole(String userEmail, Long roleId ) throws UserNotFound, RoleNotFound {
+        User user = userDAO.findByEmailIgnoreCase(userEmail).orElseThrow(() -> new UserNotFound());
+        Role role = roleDAO.findById(roleId).orElseThrow(() -> new RoleNotFound());
+        userToRoleDAO.deleteByUserAndRole(user, role);
     }
 }

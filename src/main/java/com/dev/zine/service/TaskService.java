@@ -56,6 +56,8 @@ public class TaskService {
     private RoleDAO roleDAO;
     @Autowired
     private TaskToRoleDAO taskToRoleDAO;
+    @Autowired
+    private RoleService roleService;
 
     public Task createTask(TaskCreateBody task){
         Task newTask = new Task();
@@ -180,6 +182,14 @@ public class TaskService {
         }
     }
 
+    public List<Role> getAssignedRoles(Long taskId) throws TaskNotFoundException{
+        Task task = taskDAO.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+        List<TaskToRole> taskToRoles = taskToRoleDAO.findByTaskId(task);
+        return taskToRoles.stream().map(taskToRole -> {
+            return taskToRole.getRoleId();
+        }).collect(Collectors.toList());
+    }
+
     public boolean deleteInstance(Long taskInstance){
         try{
             taskInstanceDAO.deleteById(taskInstance);
@@ -258,6 +268,8 @@ public class TaskService {
             body.setType(taskAssigned.getTaskInstanceId().getType());
             body.setId(taskAssigned.getTaskInstanceId().getTaskInstanceId());
             body.setTask(taskAssigned.getTaskInstanceId().getTaskId());
+            body.setRoomId(taskAssigned.getTaskInstanceId().getRoomId().getId());
+            body.setRoomName(taskAssigned.getTaskInstanceId().getRoomId().getName());
             return body;
         }).collect(Collectors.toList());
     }
@@ -281,5 +293,46 @@ public class TaskService {
         }
         return false;
     } 
+
+    public List<Task> getTasksForUserRoles(User user) {
+        List<Role> roles = roleService.getUserRoles(user);
+        List<Task> tasks = new ArrayList<>();
+        for(Role role: roles) {
+            List<TaskToRole> taskToRoles = taskToRoleDAO.findByRoleId(role);
+            for(TaskToRole taskToRole:  taskToRoles) {
+                tasks.add(taskToRole.getTaskId());
+            }
+        }
+        return tasks;
+    }
+
+    public UserTasksBody chooseTaskByUser(Long taskId, User user, TaskInstanceCreateBody body) throws TaskNotFoundException{
+        TaskInstance instance = createInstance(taskId, body);
+        UserTaskAssigned assigned = new UserTaskAssigned();
+        assigned.setTaskInstanceId(instance);
+        assigned.setUserId(user);
+        userTaskAssignedDAO.save(assigned);
+        Rooms room = instance.getRoomId();
+        RoomMembers member = new RoomMembers();
+        member.setRoom(room);
+        member.setUser(user);
+        member.setRole("user");
+        roomMembersDAO.save(member);
+
+        UserTasksBody resBody = new UserTasksBody();
+        resBody.setCompletionPercentage(instance.getCompletionPercentage());
+        resBody.setName(instance.getName());
+        resBody.setStatus(instance.getStatus());
+        resBody.setType(instance.getType());
+        resBody.setId(instance.getTaskInstanceId());
+        resBody.setTask(instance.getTaskId());
+        resBody.setRoomId(instance.getRoomId().getId());
+        resBody.setRoomName(instance.getRoomId().getName());
+        return resBody;
+    }
+
+    public List<TaskInstance> getEveryInstance() {
+        return taskInstanceDAO.findAll();
+    }
 
 }
