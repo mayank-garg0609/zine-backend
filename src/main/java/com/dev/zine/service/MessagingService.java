@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class MessagingService {
     private RoomsDAO roomsDAO;
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
+    @Autowired
     private RoomMembersDAO roomMembersDAO;
  
     public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
@@ -38,7 +40,7 @@ public class MessagingService {
     public Message sendMessage(MessageBody msg) throws NoSuchElementException, RoomDoesNotExist, UserNotFound, UserNotInRoom {
         Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow(() -> new RoomDoesNotExist());
         User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow(() -> new UserNotFound(msg.getSentFrom()));
-        if(!roomMembersDAO.existsByUserAndRoom(sentFrom, room)) throw new UserNotInRoom(sentFrom.getId(), room.getId());
+        if(!roomMembersDAO.existsByUserAndRoom(sentFrom, room) && sentFrom.getType()!="admin") throw new UserNotInRoom(sentFrom.getId(), room.getId());
 
         
         Message newMsg = new Message();

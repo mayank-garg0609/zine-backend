@@ -29,7 +29,7 @@ public class InstanceCommentsService {
     @Autowired
     private TaskInstanceDAO taskInstanceDAO;
 
-    public TaskInstanceComments createComment(Long id, CommentCreateBody body) throws UserNotFound, TaskInstanceNotFound {
+    public CommentResponse createComment(Long id, CommentCreateBody body) throws UserNotFound, TaskInstanceNotFound {
         User sender = userDAO.findById(body.getSenderId()).orElseThrow(() -> new UserNotFound(body.getSenderId()));
         TaskInstance instance = taskInstanceDAO.findById(id).orElseThrow(() -> new TaskInstanceNotFound(id));
         TaskInstanceComments newComment = new TaskInstanceComments();
@@ -38,7 +38,17 @@ public class InstanceCommentsService {
         newComment.setSender(sender);
         newComment.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
         commentsDAO.save(newComment);
-        return newComment;
+
+        CommentResponse resBody = new CommentResponse();
+        resBody.setCommentId(newComment.getCommentId());
+        resBody.setMessage(newComment.getMessage());
+        resBody.setSenderEmail(newComment.getSender().getEmail());
+        resBody.setSenderId(newComment.getSender().getId());
+        resBody.setSenderName(newComment.getSender().getName());
+        resBody.setTaskId(newComment.getTaskInstance().getTaskId().getId());
+        resBody.setTaskInstance(newComment.getTaskInstance().getTaskInstanceId());
+        resBody.setTimestamp(newComment.getTimestamp());
+        return resBody;
     }
 
     public CommentResponse updateComment(Long id, CommentCreateBody body) throws CommentNotFound {

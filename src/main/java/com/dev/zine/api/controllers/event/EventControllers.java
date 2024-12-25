@@ -2,6 +2,7 @@ package com.dev.zine.api.controllers.event;
 
 import com.dev.zine.api.model.event.EventBody;
 import com.dev.zine.api.model.event.EventsList;
+import com.dev.zine.api.model.event.HackathonRegistrationsBody;
 import com.dev.zine.exceptions.EventNotFound;
 import com.dev.zine.exceptions.StageNotFound;
 import com.dev.zine.model.Event;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequestMapping("/event")
@@ -75,4 +78,15 @@ public class EventControllers {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/hackathon/registration-info")
+    public ResponseEntity<?> getRegistrationInfo() {
+        try {
+            HackathonRegistrationsBody response = eventService.getHackthonRegistrations();
+            return ResponseEntity.ok().body(response);
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
 }

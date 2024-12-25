@@ -11,5 +11,7 @@ import java.util.List;
 public interface UserToRoleDAO extends ListCrudRepository<UserToRole, Long>{
     boolean existsByUserAndRole(User user, Role role);
     List<UserToRole> findByRole(Role role);
+    List<UserToRole> findByUser(User user);
+    void deleteByUserAndRole(User user, Role role);
     
 }

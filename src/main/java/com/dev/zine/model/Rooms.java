@@ -48,4 +48,8 @@ public class Rooms {
     @JsonIgnore
     @OneToMany(mappedBy = "roomId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserLastSeen> userLastSeens = new ArrayList<>();
 }

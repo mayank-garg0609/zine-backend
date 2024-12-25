@@ -2,6 +2,7 @@ package com.dev.zine.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "Users")
 @Data
-@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned", "taskInstanceComments"})
+@ToString(exclude = {"verificationTokens", "taskMentors", "userTaskAssigned", "taskInstanceComments", "instanceCheckpoints", "instanceLinks", "hackathonRegistration"})
 public class User {
 
     @Id
@@ -64,4 +65,17 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskInstanceComments> taskInstanceComments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sentFrom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceCheckpoints> instanceCheckpoints = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "sentFrom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstanceLinks> instanceLinks = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private HackathonRegistrations hackathonRegistration;
 }

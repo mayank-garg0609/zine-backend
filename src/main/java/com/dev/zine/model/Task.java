@@ -57,4 +57,10 @@ public class Task {
     @JsonIgnore
     @OneToMany(mappedBy = "taskId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskMentor> taskMentors = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskToRole> taskToRoles = new ArrayList<>();
+
+
 }

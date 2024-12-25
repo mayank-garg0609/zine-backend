@@ -4,12 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
+import com.dev.zine.api.model.images.ImagesUploadRes;
 import com.dev.zine.api.model.user.TokenUpdateBody;
+import com.dev.zine.dao.HackathonRegistrationDAO;
+import com.dev.zine.dao.MediaDAO;
 import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.UserDAO;
@@ -18,19 +22,24 @@ import com.dev.zine.dao.VerificationTokenDAO;
 import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.IncorrectPasswordException;
+import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
+import com.dev.zine.model.HackathonRegistrations;
+import com.dev.zine.model.Media;
 import com.dev.zine.model.Role;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.User;
 import com.dev.zine.model.UserToRole;
 import com.dev.zine.model.VerificationToken;
+import com.dev.zine.utils.CloudinaryUtil;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -55,6 +64,12 @@ public class UserService {
     @Autowired FirebaseMessagingService firebaseMessagingService;
     @Autowired
     private JavaMailSender emailSender;
+    @Autowired
+    private HackathonRegistrationDAO hackathonDAO;
+    @Autowired
+    private MediaDAO mediaDAO;
+    @Autowired
+    private CloudinaryUtil mediaUtil;
     private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
  
     /**
@@ -260,4 +275,67 @@ public class UserService {
         updateToken(user, body.getToken());
     }
 
+    public String toggleRegistration(User user) {
+        try{
+            if(user == null) return "TOKEN_MISSING";
+            if(user.isRegistered()) return "ALREADY_REGISTERED"; 
+            if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
+            user.setRegistered(true);
+            userDAO.save(user);
+            return "SUCCESS";
+        } catch(Exception e) {
+            return "FAILED";
+        }
+    }
+
+    public String registerHackthon(User user) {
+        try {
+            if(user == null) return "TOKEN_MISSING";
+            if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
+            if(hackathonDAO.existsByUserId(user)) return "ALREADY_REGISTERED";
+            
+            HackathonRegistrations newReg = new HackathonRegistrations();
+            newReg.setUserId(user);
+            hackathonDAO.save(newReg);
+            return "SUCCESS";
+        } catch(Exception e) {
+            return "FAILED";
+        }
+    }
+
+    public boolean checkHackthonRegistration(User user) {
+        return hackathonDAO.existsByUserId(user);
+    }
+
+    public ImagesUploadRes updateDp(User user, MultipartFile file, boolean delete) throws UserNotFound, MediaUploadFailed{
+        try {
+            if(user == null) throw new UserNotFound();
+            if(user.getImagePath() != null) {
+                Optional<Media> oldImage = mediaDAO.findByUrl(user.getImagePath());
+                    if(oldImage.isPresent()){
+                        mediaDAO.delete(oldImage.get());
+                        mediaUtil.deleteImage(oldImage.get().getPublicId());
+                    }
+            }
+            ImagesUploadRes res = new ImagesUploadRes();
+            if(delete) {
+                user.setImagePath(null);
+                userDAO.save(user);
+                res.setMessage("DP successfully deleted!");
+                return res;
+            } else {
+                res = mediaUtil.uploadFile(file, "user-dp");
+                Media newImage = new Media();
+                newImage.setPublicId(res.getPublicId());
+                newImage.setUrl(res.getUrl());
+                mediaDAO.save(newImage);
+    
+                user.setImagePath(res.getUrl());
+                userDAO.save(user);
+                return res;
+            }
+        } catch(IOException e) {
+            throw new MediaUploadFailed(e.getMessage());
+        }
+    }
 }

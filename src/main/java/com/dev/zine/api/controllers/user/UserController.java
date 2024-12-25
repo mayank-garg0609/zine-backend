@@ -7,21 +7,30 @@ import java.util.List;
 import org.hibernate.sql.exec.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.dev.zine.api.model.images.ImagesUploadRes;
+import com.dev.zine.api.model.task.TaskInstanceCreateBody;
+import com.dev.zine.api.model.task.UserTasksBody;
 import com.dev.zine.api.model.user.DeletionRequest;
 import com.dev.zine.api.model.user.RoomLastSeenInfo;
 import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.exceptions.IncorrectPasswordException;
+import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.TaskNotFoundException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
 import com.dev.zine.service.EncryptionService;
 import com.dev.zine.service.FirebaseMessagingService;
+import com.dev.zine.service.TaskService;
 import com.dev.zine.service.UserLastSeenService;
 import com.dev.zine.service.UserService;
 
@@ -46,6 +55,8 @@ public class UserController {
     private UserDAO userDAO;
     @Autowired
     private EncryptionService encryptionService;
+    @Autowired
+    private TaskService taskService;
 
     @PutMapping("/token")
     public ResponseEntity<?> fcmUpdate(@RequestBody TokenUpdateBody body) throws InterruptedException, ExecutionException {
@@ -103,6 +114,88 @@ public class UserController {
         }
         
     }
-    
+
+    @PostMapping("/tasks/{taskId}/instance") 
+    public ResponseEntity<?> chooseTask(@PathVariable Long taskId, @AuthenticationPrincipal User user, @RequestBody TaskInstanceCreateBody body) {
+        try {
+            if(user==null) throw new UserNotFound();
+            UserTasksBody resBody = taskService.chooseTaskByUser(taskId, user, body);
+            return ResponseEntity.ok().body(Map.of("instance", resBody));
+        } catch(UserNotFound | TaskNotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/workshop")
+    public ResponseEntity<?> registerWorkshop(@AuthenticationPrincipal User user) {
+        try {
+            String res = userService.toggleRegistration(user);
+            if(res=="ALREADY_REGISTERED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is already registered"));
+            } else if(res=="NOT_EMAIL_VERIFIED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is not email verified"));
+            } else if(res=="SUCCESS") {
+                return ResponseEntity.ok().body(Map.of("message","success"));
+            } else if(res=="TOKEN_MISSING") {
+                return ResponseEntity.badRequest().body(Map.of("message","JWT token is missing"));
+            } else
+                return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        }
+    }
+
+    @PostMapping("/register/hackathon")
+    public ResponseEntity<?> registerHackthon(@AuthenticationPrincipal User user) {
+        try {
+            String res = userService.registerHackthon(user);
+            if(res=="ALREADY_REGISTERED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is already registered"));
+            } else if(res=="NOT_EMAIL_VERIFIED") {
+                return ResponseEntity.badRequest().body(Map.of("message","User is not email verified"));
+            } else if(res=="SUCCESS") {
+                return ResponseEntity.ok().body(Map.of("message","success"));
+            } else if(res=="TOKEN_MISSING") {
+                return ResponseEntity.badRequest().body(Map.of("message","JWT token is missing"));
+            } else
+                return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        } catch(IllegalArgumentException e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        }
+    }
+
+    @GetMapping("/register/hackathon")
+    public ResponseEntity<?> checkHackthonRegistration(@AuthenticationPrincipal User user) {
+        try {
+            if(user==null) {
+                return ResponseEntity.badRequest().body(Map.of("message","JWT token is missing/incorrect"));
+            }
+            else if(userService.checkHackthonRegistration(user)){
+                System.out.println(user.getName());
+                return ResponseEntity.ok().body(Map.of("message","User is registered", "status", "registered"));
+            } else{
+                System.out.println(user.getName());
+                return ResponseEntity.ok().body(Map.of("message","User is not registered", "status", "not_registered"));
+                
+            }
+        } catch(IllegalArgumentException e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
+        }
+    }
+
+    @PostMapping("/update-dp")
+    public ResponseEntity<?> uploadUserDp(@AuthenticationPrincipal User user, @RequestParam MultipartFile file, @RequestParam boolean delete) {
+        try {
+            ImagesUploadRes res = userService.updateDp(user, file, delete);
+            return ResponseEntity.ok().body(res);
+        } catch(UserNotFound | MediaUploadFailed e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
 }
 
