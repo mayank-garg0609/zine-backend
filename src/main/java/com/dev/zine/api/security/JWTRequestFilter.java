@@ -2,9 +2,14 @@ package com.dev.zine.api.security;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -52,8 +57,9 @@ public class JWTRequestFilter extends OncePerRequestFilter {
                 Optional<User> opUser = localUserDAO.findByEmailIgnoreCase(username);
                 if (opUser.isPresent()) {
                     User user = opUser.get();
+                    List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getType()));                  
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user,
-                            null, new ArrayList<>()); //principal, password, list of roles
+                            null, authorities); //principal, password, list of roles
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
