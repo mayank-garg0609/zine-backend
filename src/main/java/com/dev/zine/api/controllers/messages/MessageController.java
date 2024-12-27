@@ -1,6 +1,7 @@
 package com.dev.zine.api.controllers.messages;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dev.zine.api.model.messages.MessageBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Message;
+import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.service.MessagingService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,11 +35,13 @@ public class MessageController {
     }
     
     @PostMapping("/http-msg")
-    public void sendHttpMessage(@RequestBody MessageBody msg) {
+    public ResponseEntity<?> sendHttpMessage(@RequestBody MessageBody msg) {
         try {
             messagingService.sendMessage(msg);
+            return ResponseEntity.ok().build();
         } catch (Exception ex) {
             ex.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
         }
     }
     
@@ -52,10 +56,10 @@ public class MessageController {
     // }
 
     @GetMapping("/roomMsg")
-    public ResponseEntity getRoomMessages(@RequestParam long roomId) {
+    public ResponseEntity<?> getRoomMessages(@RequestParam long roomId) {
         try {
-            List<Message> msg = messagingService.getRoomMessages(roomId);
-            return ResponseEntity.ok(msg);
+            List<ChatItem> msgs = messagingService.getRoomMessages(roomId);
+            return ResponseEntity.ok(msgs);
         } catch (RoomDoesNotExist ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception e) {
