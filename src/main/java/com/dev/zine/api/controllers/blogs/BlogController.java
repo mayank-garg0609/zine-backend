@@ -30,7 +30,7 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAuthority('admin')")
     @PostMapping()
     public ResponseEntity<?> createBlog(@RequestBody BlogBody body) {
         try{
