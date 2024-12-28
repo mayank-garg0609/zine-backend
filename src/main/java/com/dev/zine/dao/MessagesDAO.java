@@ -1,5 +1,6 @@
 package com.dev.zine.dao;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,6 @@ public interface MessagesDAO extends ListCrudRepository<Message, Long> {
 
     @Query("SELECT COUNT(m) FROM Message m WHERE m.roomId = :room AND m.timestamp > :lastSeen")
     Long countUnreadMessages(@Param("room") Rooms room, @Param("lastSeen") Timestamp lastSeen);
+
+    List<Message> findByRoomIdOrderByTimestampDesc(Rooms room, Pageable pageable);
 }
