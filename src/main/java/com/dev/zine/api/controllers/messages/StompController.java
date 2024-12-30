@@ -5,7 +5,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import com.dev.zine.api.model.messages.MessageBody;
+
+import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.service.MessagingService;
 
@@ -18,7 +19,7 @@ public class StompController {
     private SimpMessagingTemplate simpMessagingTemplate;
     
     @MessageMapping("/message")
-    public void sendStompMessage(@Payload MessageBody msg) {
+    public void sendStompMessage(@Payload MessageCreateBody msg) {
         try {
             ChatItem message = messagingService.sendMessage(msg);
             simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
