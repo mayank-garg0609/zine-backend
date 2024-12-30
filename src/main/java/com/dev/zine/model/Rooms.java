@@ -3,6 +3,7 @@ package com.dev.zine.model;
 import java.sql.Timestamp;
 import java.util.*;
 
+import com.dev.zine.model.chat.ChatItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -48,6 +49,10 @@ public class Rooms {
     @JsonIgnore
     @OneToMany(mappedBy = "roomId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "roomId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatItem> chatItems = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
