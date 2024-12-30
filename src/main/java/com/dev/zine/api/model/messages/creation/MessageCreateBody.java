@@ -1,13 +1,14 @@
-package com.dev.zine.api.model.messages;
+package com.dev.zine.api.model.messages.creation;
 
-import java.sql.Timestamp;
+import com.dev.zine.api.model.messages.FileBody;
+import com.dev.zine.api.model.messages.TextMsgBody;
 
 import jakarta.validation.constraints.NotNull;
 
 import lombok.Data;
 
 @Data
-public class MessageBody {
+public class MessageCreateBody {
     @NotNull
     private String type;
     @NotNull
@@ -16,6 +17,6 @@ public class MessageBody {
     private Long roomId;
     private Long replyTo;
     private FileBody file;
-    private PollBody poll;
+    private PollCreateBody poll;
     private TextMsgBody textMessage;
 }

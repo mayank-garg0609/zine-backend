@@ -12,7 +12,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dev.zine.api.model.messages.MessageBody;
+import com.dev.zine.api.model.messages.creation.MessageCreateBody;
+import com.dev.zine.api.model.messages.response.MsgResBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Message;
 import com.dev.zine.model.chat.ChatItem;
@@ -35,7 +36,7 @@ public class MessageController {
     }
     
     @PostMapping("/http-msg")
-    public ResponseEntity<?> sendHttpMessage(@RequestBody MessageBody msg) {
+    public ResponseEntity<?> sendHttpMessage(@RequestBody MessageCreateBody msg) {
         try {
             messagingService.sendMessage(msg);
             return ResponseEntity.ok().build();
@@ -58,12 +59,12 @@ public class MessageController {
     @GetMapping("/roomMsg")
     public ResponseEntity<?> getRoomMessages(@RequestParam long roomId) {
         try {
-            List<ChatItem> msgs = messagingService.getRoomMessages(roomId);
+            List<MsgResBody> msgs = messagingService.getRoomMessages(roomId);
             return ResponseEntity.ok(msgs);
         } catch (RoomDoesNotExist ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }
     }
 }

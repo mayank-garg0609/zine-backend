@@ -35,17 +35,17 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
 
-    - name: Deploy to EC2
-      env:
-            PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-            HOSTNAME: ${{secrets.EC2_HOST}}
-            USER_NAME: ${{secrets.EC2_USER}}
+    # - name: Deploy to EC2
+    #   env:
+    #         PRIVATE_KEY: ${{ secrets.EC2_KEY }}
+    #         HOSTNAME: ${{secrets.EC2_HOST}}
+    #         USER_NAME: ${{secrets.EC2_USER}}
       
-      run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          docker stop zine-backend || true
-          docker rm zine-backend || true
-          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          '
+    #   run: |
+    #       echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+    #       ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+    #       docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+    #       docker stop zine-backend || true
+    #       docker rm zine-backend || true
+    #       docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+    #       '
