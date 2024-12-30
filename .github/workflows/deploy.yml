@@ -52,23 +52,17 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
         fi
 
-    - name: Deploy to EC2
-      env:
-        PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-        HOSTNAME: ${{ secrets.EC2_HOST }}
-        USER_NAME: ${{ secrets.EC2_USER }}
-      run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} << 'EOF'
-        if [[ "${{ github.ref_name }}" == "main" ]]; then
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          docker stop zine-backend || true
-          docker rm zine-backend || true
-          docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-        else
-          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-          docker stop zine-backend-test || true
-          docker rm zine-backend-test || true
-          docker run -d --env-file .env.test --name zine-backend-test -p 3001:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-        fi
-        EOF
+    # - name: Deploy to EC2
+    #   env:
+    #         PRIVATE_KEY: ${{ secrets.EC2_KEY }}
+    #         HOSTNAME: ${{secrets.EC2_HOST}}
+    #         USER_NAME: ${{secrets.EC2_USER}}
+      
+    #   run: |
+    #       echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+    #       ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+    #       docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+    #       docker stop zine-backend || true
+    #       docker rm zine-backend || true
+    #       docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+    #       '
