@@ -53,6 +53,7 @@ public class CloudinaryUtil {
             res.setUrl(result.get("url").toString());
             res.setPublicId(result.get("public_id").toString());
             res.setMessage("DP successfully updated");
+            res.setStatus("success");
             return res;
         } catch (IOException e) {
             System.err.println("Error during Cloudinary upload: " + e.getMessage());

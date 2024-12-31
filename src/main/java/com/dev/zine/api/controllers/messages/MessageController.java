@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,6 +17,7 @@ import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.api.model.messages.response.MsgResBody;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Message;
+import com.dev.zine.model.User;
 import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.service.MessagingService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,9 +59,9 @@ public class MessageController {
     // }
 
     @GetMapping("/roomMsg")
-    public ResponseEntity<?> getRoomMessages(@RequestParam long roomId) {
+    public ResponseEntity<?> getRoomMessages(@RequestParam long roomId, @AuthenticationPrincipal User user) {
         try {
-            List<MsgResBody> msgs = messagingService.getRoomMessages(roomId);
+            List<MsgResBody> msgs = messagingService.getRoomMessages(roomId, user);
             return ResponseEntity.ok(msgs);
         } catch (RoomDoesNotExist ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
