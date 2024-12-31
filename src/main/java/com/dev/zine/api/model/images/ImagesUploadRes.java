@@ -7,4 +7,5 @@ public class ImagesUploadRes {
     private String url;
     private String publicId;
     private String message;
+    private String status;
 }

@@ -11,18 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dev.zine.api.model.messages.FileBody;
+import com.dev.zine.api.model.messages.PollVoteBody;
 import com.dev.zine.api.model.messages.TextMsgBody;
 import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.api.model.messages.creation.PollCreateBody;
+import com.dev.zine.api.model.messages.response.BroadcastMsgBody;
 import com.dev.zine.api.model.messages.response.MsgReplyBody;
 import com.dev.zine.api.model.messages.response.MsgResBody;
 import com.dev.zine.api.model.messages.response.PollOptionResBody;
 import com.dev.zine.api.model.messages.response.PollResBody;
+import com.dev.zine.api.model.messages.response.PollVoteRes;
 import com.dev.zine.api.model.messages.response.SentFromBody;
 import com.dev.zine.dao.MediaDAO;
-import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
@@ -30,6 +33,8 @@ import com.dev.zine.dao.chat.ChatItemDAO;
 import com.dev.zine.dao.chat.MessageDAO;
 import com.dev.zine.dao.chat.PollDAO;
 import com.dev.zine.dao.chat.PollOptionDAO;
+import com.dev.zine.dao.chat.PollVoteDAO;
+import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotInRoom;
@@ -39,14 +44,15 @@ import com.dev.zine.model.User;
 import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.model.chat.Poll;
 import com.dev.zine.model.chat.PollOption;
+import com.dev.zine.model.chat.PollVote;
 import com.dev.zine.model.chat.TextMessage;
 
 @Service
 public class MessagingService {
-    private MessagesDAO messagesDAO;
     private RoomsDAO roomsDAO;
     private UserDAO userDAO;
     private FirebaseMessagingService fcm;
+    private SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     private RoomMembersDAO roomMembersDAO;
     @Autowired
@@ -59,45 +65,53 @@ public class MessagingService {
     private MessageDAO textDAO;
     @Autowired
     private MediaDAO mediaDAO;
- 
-    public MessagingService(MessagesDAO messagesDAO, FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,SimpMessagingTemplate simpMessagingTemplate ) {
-        this.messagesDAO = messagesDAO;
+    @Autowired
+    private PollVoteDAO pollVoteDAO;
+
+    public MessagingService(FirebaseMessagingService fcm, UserDAO userDAO, RoomsDAO roomsDAO,
+            SimpMessagingTemplate simpMessagingTemplate) {
         this.fcm = fcm;
         this.userDAO = userDAO;
         this.roomsDAO = roomsDAO;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    public ChatItem sendMessage(MessageCreateBody msg) throws NoSuchElementException, RoomDoesNotExist, UserNotFound, UserNotInRoom {
+    @Transactional
+    public BroadcastMsgBody sendMessage(MessageCreateBody msg)
+            throws NoSuchElementException, RoomDoesNotExist, UserNotFound, UserNotInRoom {
         Rooms room = roomsDAO.findById(msg.getRoomId()).orElseThrow(() -> new RoomDoesNotExist());
         User sentFrom = userDAO.findById(msg.getSentFrom()).orElseThrow(() -> new UserNotFound(msg.getSentFrom()));
-        if(!roomMembersDAO.existsByUserAndRoom(sentFrom, room) && !"admin".equals(sentFrom.getType())) throw new UserNotInRoom(sentFrom.getId(), room.getId());
+        if (!roomMembersDAO.existsByUserAndRoom(sentFrom, room) && !"admin".equals(sentFrom.getType()))
+            throw new UserNotInRoom(sentFrom.getId(), room.getId());
 
-        
         ChatItem item = new ChatItem();
         item.setType(msg.getType());
-        if("text".equals(msg.getType()) && msg.getTextMessage()!=null) {
-            TextMessage text = createTextMessage(msg.getTextMessage());
+        if ("text".equals(msg.getType()) && msg.getText() != null) {
+            TextMessage text = createTextMessage(msg.getText());
             item.setTextMessage(text);
-        } else if("poll".equals(msg.getType()) && msg.getPoll()!=null) {
+        } else if ("poll".equals(msg.getType()) && msg.getPoll() != null) {
             Poll poll = createPoll(msg.getPoll());
             item.setPoll(poll);
-        } else if("file".equals(msg.getType()) && msg.getFile()!=null) {
+        } else if ("file".equals(msg.getType()) && msg.getFile() != null) {
             Media file = getFile(msg.getFile());
             item.setFile(file);
         }
-        if(msg.getReplyTo()!=null) item.setReplyTo(chatItemDAO.findById(msg.getReplyTo()).orElse(null));
+        if (msg.getReplyTo() != null)
+            item.setReplyTo(chatItemDAO.findById(msg.getReplyTo()).orElse(null));
         item.setRoomId(room);
         item.setSentFrom(sentFrom);
         item.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+        // System.out.println("hii1111");
         chatItemDAO.save(item);
+        // System.out.println("hii1112");
 
         // simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
-        //         msg);
+        // msg);
         // fcm.sendNotificationToTopic("room" + msg.getRoomId()+"", room.getName(),
-        //         sentFrom.getName() + ": " + msg.getContent(),
-        //         msg.getContentUrl());
+        // sentFrom.getName() + ": " + msg.getContent(),
+        // msg.getContentUrl());
 
-        return item;
+        return constructBroadcastMsg("new-message", item);
 
     }
 
@@ -106,7 +120,7 @@ public class MessagingService {
         newPoll.setDescription(body.getDescription());
         newPoll.setTitle(body.getTitle());
         pollDAO.save(newPoll);
-        for(String option: body.getPollOptions()) {
+        for (String option : body.getPollOptions()) {
             PollOption newOption = new PollOption();
             newOption.setPoll(newPoll);
             newOption.setValue(option);
@@ -121,29 +135,30 @@ public class MessagingService {
         textDAO.save(msg);
         return msg;
     }
-    
+
     public Media getFile(FileBody body) {
-        return mediaDAO.findByUrl(body.getUrl()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found"));
+        return mediaDAO.findByUrl(body.getUrl())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found"));
     }
 
-    public List<MsgResBody> getRoomMessages(Long roomId) throws RoomDoesNotExist {
+    public List<MsgResBody> getRoomMessages(Long roomId, User user) throws RoomDoesNotExist {
         Rooms room = roomsDAO.findById(roomId).orElseThrow(RoomDoesNotExist::new);
         List<ChatItem> messages = chatItemDAO.findByRoomIdOrderByTimestampAsc(room);
         return messages.stream().map(item -> {
             MsgResBody body = new MsgResBody();
             body.setId(item.getId());
             body.setType(item.getType());
-            if("text".equals(item.getType())) { 
+            if ("text".equals(item.getType())) {
                 TextMsgBody textBody = new TextMsgBody();
                 textBody.setContent(item.getTextMessage().getContent());
                 body.setText(textBody);
-            } else if("file".equals(item.getType())) {
+            } else if ("file".equals(item.getType())) {
                 FileBody fileBody = new FileBody();
                 fileBody.setDescription(item.getFile().getDescription());
                 fileBody.setName(item.getFile().getName());
                 fileBody.setUrl(item.getFile().getUrl());
                 body.setFile(fileBody);
-            } else if("poll".equals(item.getType())) {
+            } else if ("poll".equals(item.getType())) {
                 PollResBody pollResBody = new PollResBody();
                 pollResBody.setDescription(item.getPoll().getDescription());
                 pollResBody.setTitle(item.getPoll().getTitle());
@@ -153,7 +168,10 @@ public class MessagingService {
                     res.setId(option.getId());
                     res.setNumVotes(option.getPollVotes().size());
                     return res;
-                }).collect(Collectors.toList()));
+                    })
+                    .collect(Collectors.toList()));
+                PollVote lastVote = pollVoteDAO.findByVoterAndPoll(user, item.getPoll()).orElse(null);
+                if(lastVote!=null) pollResBody.setLastVoted(lastVote.getOption().getId());
                 body.setPoll(pollResBody);
             }
             SentFromBody sentFromBody = new SentFromBody();
@@ -161,12 +179,94 @@ public class MessagingService {
             sentFromBody.setName(item.getSentFrom().getName());
             body.setSentFrom(sentFromBody);
             body.setTimestamp(item.getTimestamp());
-            if(item.getReplyTo()!=null) {
+            if (item.getReplyTo() != null) {
                 MsgReplyBody msgReplyBody = new MsgReplyBody();
                 msgReplyBody.setId(item.getReplyTo().getId());
                 body.setReplyTo(msgReplyBody);
             }
             return body;
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BroadcastMsgBody constructBroadcastMsg(String update, ChatItem item) {
+        BroadcastMsgBody res = new BroadcastMsgBody();
+        MsgResBody body = new MsgResBody();
+        body.setId(item.getId());
+        body.setType(item.getType());
+        if ("text".equals(item.getType())) {
+            TextMsgBody textBody = new TextMsgBody();
+            textBody.setContent(item.getTextMessage().getContent());
+            body.setText(textBody);
+        } else if ("file".equals(item.getType())) {
+            FileBody fileBody = new FileBody();
+            fileBody.setDescription(item.getFile().getDescription());
+            fileBody.setName(item.getFile().getName());
+            fileBody.setUrl(item.getFile().getUrl());
+            body.setFile(fileBody);
+        } else if ("poll".equals(item.getType())) {
+            PollResBody pollResBody = new PollResBody();
+            pollResBody.setDescription(item.getPoll().getDescription());
+            pollResBody.setTitle(item.getPoll().getTitle());
+            List<PollOption> op = optionDAO.findAllByPoll(item.getPoll());
+            pollResBody.setOptions(op.stream()
+                .map(option -> {
+                    PollOptionResBody optionRes = new PollOptionResBody();
+                    optionRes.setValue(option.getValue());
+                    optionRes.setId(option.getId());
+                    optionRes.setNumVotes(option.getPollVotes().size());
+                    return optionRes;
+                })
+                .collect(Collectors.toList()));
+            body.setPoll(pollResBody);
+        }
+        SentFromBody sentFromBody = new SentFromBody();
+        sentFromBody.setId(item.getSentFrom().getId());
+        sentFromBody.setName(item.getSentFrom().getName());
+        body.setSentFrom(sentFromBody);
+        body.setTimestamp(item.getTimestamp());
+        if (item.getReplyTo() != null) {
+            MsgReplyBody msgReplyBody = new MsgReplyBody();
+            msgReplyBody.setId(item.getReplyTo().getId());
+            body.setReplyTo(msgReplyBody);
+        }
+        res.setUpdate(update);
+        res.setBody(body);
+        return res;
+    }
+
+    @Transactional
+    public void registerVote(PollVoteBody vote) throws UserNotFound, NotFoundException {
+        User voter = userDAO.findById(vote.getVoterId()).orElseThrow(() -> new UserNotFound(vote.getVoterId()));
+        ChatItem chatItem = chatItemDAO.findById(vote.getChatId())
+                .orElseThrow(() -> new NotFoundException("ChatItem", vote.getChatId()));
+        if (chatItem.getPoll() == null)
+            return;
+        PollOption pollOption = optionDAO.findById(vote.getOptionId())
+                .orElseThrow(() -> new NotFoundException("PollOption", vote.getChatId()));
+        pollVoteDAO.deleteAllByVoterAndPoll(voter, chatItem.getPoll());
+        PollVote newVote = new PollVote();
+        newVote.setOption(pollOption);
+        newVote.setPoll(chatItem.getPoll());
+        newVote.setVoter(voter);
+        pollVoteDAO.save(newVote);
+
+        BroadcastMsgBody res = new BroadcastMsgBody();
+
+        PollVoteRes voteRes = new PollVoteRes();
+        voteRes.setChatItemId(chatItem.getId());
+        voteRes.setPollOptions(chatItem.getPoll().getPollOptions().stream().map(option -> {
+            PollOptionResBody pollRes = new PollOptionResBody();
+            pollRes.setValue(option.getValue());
+            pollRes.setId(option.getId());
+            pollRes.setNumVotes(pollVoteDAO.countByOption(option));
+            return pollRes;
+        }).collect(Collectors.toList()));
+
+        res.setPollUpdate(voteRes);
+        res.setUpdate("poll-update");
+
+        simpMessagingTemplate.convertAndSend("/room/" + chatItem.getRoomId().getId(),
+                res);
     }
 }

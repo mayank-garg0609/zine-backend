@@ -10,4 +10,5 @@ public class PollResBody {
     private String title;
     private String description;
     private List<PollOptionResBody> options;
+    private Long lastVoted;
 }

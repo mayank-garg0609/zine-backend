@@ -18,5 +18,5 @@ public class MessageCreateBody {
     private Long replyTo;
     private FileBody file;
     private PollCreateBody poll;
-    private TextMsgBody textMessage;
+    private TextMsgBody text;
 }
