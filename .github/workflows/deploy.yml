@@ -52,20 +52,25 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
         fi
 
-    - name: Deploy to EC2
+    - name: Deploy Application
       env:
         PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-        HOSTNAME: ${{ secrets.EC2_HOST }}
-        USER_NAME: ${{ secrets.EC2_USER }}
+        EC2_HOSTNAME: ${{ secrets.EC2_HOST }}
+        EC2_USER: ${{ secrets.EC2_USER }}
+        AZURE_PRIVATE_KEY: ${{ secrets.AZURE_KEY }}
+        AZURE_HOSTNAME: ${{ secrets.AZURE_HOST }}
+        AZURE_USER: ${{ secrets.AZURE_USER }}
       run: |
-        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} << 'EOF'
         if [[ "${{ github.ref_name }}" == "main" ]]; then
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${EC2_USER}@${EC2_HOSTNAME} << 'EOF'
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
           docker stop zine-backend || true
           docker rm zine-backend || true
           docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
         else
+          echo "$AZURE_PRIVATE_KEY" > azure_private_key && chmod 600 azure_private_key
+          ssh -o StrictHostKeyChecking=no -i azure_private_key ${AZURE_USER}@${AZURE_HOSTNAME} << 'EOF'
           docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
           docker stop zine-backend-test || true
           docker rm zine-backend-test || true
