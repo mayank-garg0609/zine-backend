@@ -1,4 +1,4 @@
-package com.dev.zine.api.security;
+package com.dev.zine.websocket.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
