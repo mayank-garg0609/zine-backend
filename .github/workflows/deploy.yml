@@ -64,17 +64,17 @@ jobs:
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
             ssh -o StrictHostKeyChecking=no -i private_key ${EC2_USER}@${EC2_HOSTNAME} <<EOF
-docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-docker stop zine-backend || true
-docker rm zine-backend || true
-docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-EOF
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+          docker stop zine-backend || true
+          docker rm zine-backend || true
+          docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+          EOF
           else
             echo "$AZURE_PRIVATE_KEY" > azure_private_key && chmod 600 azure_private_key
             ssh -o StrictHostKeyChecking=no -i azure_private_key ${AZURE_USER}@${AZURE_HOSTNAME} <<EOF
-docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-docker stop zine-backend-test || true
-docker rm zine-backend-test || true
-docker run -d --env-file .env.test --name zine-backend-test -p 3001:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-EOF
+          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+          docker stop zine-backend-test || true
+          docker rm zine-backend-test || true
+          docker run -d --env-file .env.test --name zine-backend-test -p 3001:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+          EOF
           fi
