@@ -1,3 +1,3 @@
 # Zine Backend
 
-testing ci cd for test: #1
+testing ci cd for test: #2
