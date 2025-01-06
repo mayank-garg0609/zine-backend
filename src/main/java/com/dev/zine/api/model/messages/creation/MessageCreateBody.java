@@ -2,6 +2,7 @@ package com.dev.zine.api.model.messages.creation;
 
 import com.dev.zine.api.model.messages.FileBody;
 import com.dev.zine.api.model.messages.TextMsgBody;
+import com.dev.zine.api.model.messages.edit.PollEditBody;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -19,4 +20,5 @@ public class MessageCreateBody {
     private FileBody file;
     private PollCreateBody poll;
     private TextMsgBody text;
+    private PollEditBody pollEditBody;
 }

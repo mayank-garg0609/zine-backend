@@ -18,6 +18,7 @@ import com.dev.zine.api.model.messages.PollVoteBody;
 import com.dev.zine.api.model.messages.TextMsgBody;
 import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.api.model.messages.creation.PollCreateBody;
+import com.dev.zine.api.model.messages.edit.PollOptionEditBody;
 import com.dev.zine.api.model.messages.response.BroadcastMsgBody;
 import com.dev.zine.api.model.messages.response.MsgReplyBody;
 import com.dev.zine.api.model.messages.response.MsgResBody;
@@ -148,6 +149,7 @@ public class MessagingService {
             MsgResBody body = new MsgResBody();
             body.setId(item.getId());
             body.setType(item.getType());
+            body.setDeleted(item.isDeleted());
             if ("text".equals(item.getType())) {
                 TextMsgBody textBody = new TextMsgBody();
                 textBody.setContent(item.getTextMessage().getContent());
@@ -194,6 +196,12 @@ public class MessagingService {
         MsgResBody body = new MsgResBody();
         body.setId(item.getId());
         body.setType(item.getType());
+        body.setDeleted(item.isDeleted());
+        if(item.isDeleted()) 
+            System.out.println("msg "+item.getId().toString());
+        else
+            System.out.println("not deleted "+item.getId().toString());
+            
         if ("text".equals(item.getType())) {
             TextMsgBody textBody = new TextMsgBody();
             textBody.setContent(item.getTextMessage().getContent());
@@ -269,4 +277,49 @@ public class MessagingService {
         simpMessagingTemplate.convertAndSend("/room/" + chatItem.getRoomId().getId(),
                 res);
     }
+
+
+    public void editMessage(Long id, MessageCreateBody msg, User user) throws NotFoundException{
+        ChatItem item = chatItemDAO.findById(id).orElseThrow(() -> new NotFoundException("ChatItem", id));
+        if("admin".equals(user.getType()) || item.getSentFrom()==user) {
+            if("text".equals(msg.getType())) {
+                if(msg.getText().getClass()!=null) item.getTextMessage().setContent(msg.getText().getContent());
+                textDAO.save(item.getTextMessage());
+            } else if("poll".equals(msg.getType())) {
+                if(msg.getPollEditBody().getDescription()!=null) item.getPoll().setDescription(msg.getPollEditBody().getDescription());
+                if(msg.getPollEditBody().getTitle()!=null) item.getPoll().setTitle(msg.getPollEditBody().getTitle());
+                for(PollOptionEditBody body : msg.getPollEditBody().getOptions()) {
+                    if("update".equals(body.getAction())) {
+                        PollOption option = optionDAO.findById(body.getOptionId()).orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
+                        option.setValue(body.getValue());
+                        optionDAO.save(option);
+                    } else if("delete".equals(body.getAction())) {
+                        PollOption option = optionDAO.findById(body.getOptionId()).orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
+                        optionDAO.delete(option);
+                    } else if("add".equals(body.getAction())) {
+                        PollOption newOption = new PollOption();
+                        newOption.setPoll(item.getPoll());
+                        newOption.setValue(body.getValue());
+                        optionDAO.save(newOption);
+                    }
+                }
+            }
+        }
+ 
+
+    }
+
+    public void deleteMessage(Long id, User user) throws NotFoundException {
+        ChatItem item = chatItemDAO.findById(id).orElseThrow(() -> new NotFoundException("ChatItem", id));
+    
+        if ("admin".equals(user.getType()) || user.equals(item.getSentFrom())) {
+            item.setDeleted(true);
+            chatItemDAO.findByReplyTo(item).forEach(replied -> {
+                replied.setReplyTo(null);
+                chatItemDAO.save(replied); 
+            });
+            chatItemDAO.save(item);
+        }
+    }
+    
 }

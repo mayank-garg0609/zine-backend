@@ -9,5 +9,6 @@ import com.dev.zine.model.Rooms;
 
 public interface ChatItemDAO extends ListCrudRepository<ChatItem, Long>{
     List<ChatItem> findByRoomIdOrderByTimestampAsc(Rooms roomId);
+    List<ChatItem> findByReplyTo(ChatItem replyTo);
     
 }

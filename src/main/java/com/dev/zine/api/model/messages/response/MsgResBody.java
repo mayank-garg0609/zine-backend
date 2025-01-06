@@ -17,4 +17,5 @@ public class MsgResBody {
     private SentFromBody sentFrom;
     private MsgReplyBody replyTo;
     private Timestamp timestamp;
+    private boolean deleted;
 }

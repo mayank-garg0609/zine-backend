@@ -15,15 +15,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.api.model.messages.response.MsgResBody;
+import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.model.Message;
 import com.dev.zine.model.User;
 import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.service.MessagingService;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 // @Controller
@@ -37,7 +42,7 @@ public class MessageController {
         this.messagingService = messagingService;
     }
     
-    @PostMapping("/http-msg")
+    @PostMapping()
     public ResponseEntity<?> sendHttpMessage(@RequestBody MessageCreateBody msg) {
         try {
             messagingService.sendMessage(msg);
@@ -48,6 +53,27 @@ public class MessageController {
         }
     }
     
+    @PutMapping("/{id}")
+    public ResponseEntity<?> editMessage(@PathVariable Long id, @RequestBody MessageCreateBody msg, @AuthenticationPrincipal User user) {
+        try {
+            messagingService.editMessage(id, msg, user);
+            return ResponseEntity.ok().build();
+        } catch(NotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        try {
+            messagingService.deleteMessage(id, user);
+            return ResponseEntity.ok().build();
+        } catch(NotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
+
 
     // @MessageMapping("/send")
     // public void sendMessage(MessageBody message) {
