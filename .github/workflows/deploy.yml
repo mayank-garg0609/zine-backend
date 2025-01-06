@@ -11,83 +11,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+    - name: Load Firebase Service file
+      env:
+        DATA: ${{ secrets.FIREBASE_ADMIN_JSON }}
+      run: echo "$DATA" > src/main/resources/zine-firebase-admin.json
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
-
-      - name: Load Firebase Service file
-        env:
-          DATA: ${{ secrets.FIREBASE_ADMIN_JSON }}
-        run: echo "$DATA" > src/main/resources/zine-firebase-admin.json
-
-      - name: Build Docker image
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest .
-          else
-            docker build -t ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest .
-          fi
-
-      - name: Log in to Docker Hub
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-          else
-            echo ${{ secrets.DOCKERHUB_PASSWORD2 }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME2 }} --password-stdin
-          fi
-
-      - name: Push Docker image
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          else
-            docker push ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-          fi
-
-  deploy-to-ec2:
-    name: Deploy to EC2 (main branch)
-    if: github.ref_name == 'main' # Executes only for the 'main' branch
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to EC2
-        env:
-          PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-          HOSTNAME: ${{ secrets.EC2_HOST }}
-          USER_NAME: ${{ secrets.EC2_USER }}
-
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+    - name: Build Docker image
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest .
+        else
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest .
+        fi
+    - name: Log in to Docker Hub
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        else
+          echo ${{ secrets.DOCKERHUB_PASSWORD2 }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME2 }} --password-stdin
+        fi
+    - name: Push Docker image
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+        else
+          docker push ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+        fi
+    - name: Deploy to EC2
+      env:
+        PRIVATE_KEY: ${{ secrets.AZURE_KEY }}
+        HOSTNAME: ${{ secrets.AZURE_HOST }}
+        USER_NAME: ${{ secrets.AZURE_USER }}
+      run: |
+        echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} << 'EOF'
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
           docker stop zine-backend || true
           docker rm zine-backend || true
-          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          '
-
-  deploy-to-azure:
-    name: Deploy to Azure VM (test branch)
-    if: github.ref_name == 'test' # Executes only for the 'test' branch
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Azure VM
-        env:
-          PRIVATE_KEY: ${{ secrets.AZURE_KEY }}
-          HOSTNAME: ${{ secrets.AZURE_HOST }}
-          USER_NAME: ${{ secrets.AZURE_USER }}
-
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend:latest
-          docker stop zine-backend || true
-          docker rm zine-backend || true
-          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend:latest
-          '
+          docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+        else
+          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+          docker stop zine-backend-test || true
+          docker rm zine-backend-test || true
+          docker run -d --env-file .env.test --name zine-backend-test -p 3001:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+        fi
+        EOF
