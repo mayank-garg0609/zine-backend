@@ -11,6 +11,8 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.Notification;
 
 @Service
@@ -38,16 +40,21 @@ public class FirebaseMessagingService {
 
     }
 
-    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl) {
-        Notification notification = Notification.builder()
+    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl, List<String> bodyLocalization) {
+        AndroidNotification notification = AndroidNotification.builder()
                 .setTitle(subject)
                 .setBody(content)
                 .setImage(imageUrl)
+                .addAllBodyLocalizationArgs(bodyLocalization)
+                .build(); 
+
+        AndroidConfig androidConfig = AndroidConfig.builder()
+                .setNotification(notification)
                 .build();
 
         Message message = Message.builder()
-                .setTopic(topic)
-                .setNotification(notification)
+                .setTopic(topic) 
+                .setAndroidConfig(androidConfig)
                 .build();
 
         try {
