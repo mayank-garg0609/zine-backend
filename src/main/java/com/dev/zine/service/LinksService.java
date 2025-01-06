@@ -3,6 +3,7 @@ package com.dev.zine.service;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,9 +46,13 @@ public class LinksService {
         link.setSentFrom(user);
         linksDAO.save(link);
 
+        List<String> bodyArgs = new ArrayList<>();
+        bodyArgs.add(instance.getRoomId().getId().toString());
+        bodyArgs.add(link.getId().toString());
+        bodyArgs.add(user.getEmail());
         String prefix = "[LINK]";
         fcm.sendNotificationToTopic("room" + instance.getRoomId().getId()+"", instance.getRoomId().getName(),
-                prefix + ": " + body.getLink(), null);
+                prefix + ": " + body.getLink(), null, bodyArgs);
         
         LinkResBody resBody = new LinkResBody();
         resBody.setId(link.getId());

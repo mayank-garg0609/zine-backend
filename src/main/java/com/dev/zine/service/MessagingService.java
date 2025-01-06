@@ -2,6 +2,7 @@ package com.dev.zine.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -108,12 +109,27 @@ public class MessagingService {
 
         // simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
         // msg);
-        // fcm.sendNotificationToTopic("room" + msg.getRoomId()+"", room.getName(),
-        // sentFrom.getName() + ": " + msg.getContent(),
-        // msg.getContentUrl());
+        fcmMessageBuilder(item);
 
         return constructBroadcastMsg("new-message", item);
 
+    }
+
+    public void fcmMessageBuilder(ChatItem item) {
+        List<String> bodyArgs = new ArrayList<>();
+        bodyArgs.add(item.getRoomId().getId().toString());
+        bodyArgs.add(item.getId().toString());
+        bodyArgs.add(item.getSentFrom().getEmail());
+        if ("text".equals(item.getType())) {
+            fcm.sendNotificationToTopic("room" + item.getRoomId().getId() + "", item.getRoomId().getName(),
+                    item.getSentFrom().getName() + ": " + item.getTextMessage().getContent(), "", bodyArgs);
+        } else if ("poll".equals(item.getType())) {
+            fcm.sendNotificationToTopic("room" + item.getRoomId().getId() + "", item.getRoomId().getName(),
+                    item.getSentFrom().getName() + " shared a poll: "+item.getPoll().getTitle(), "", bodyArgs);
+        } else if("file".equals(item.getType())) {
+            fcm.sendNotificationToTopic("room" + item.getRoomId().getId() + "", item.getRoomId().getName(),
+                    item.getSentFrom().getName() + " shared a file: "+item.getFile().getName(), "", bodyArgs);
+        }
     }
 
     public Poll createPoll(PollCreateBody body) {
@@ -170,10 +186,11 @@ public class MessagingService {
                     res.setId(option.getId());
                     res.setNumVotes(option.getPollVotes().size());
                     return res;
-                    })
-                    .collect(Collectors.toList()));
+                })
+                        .collect(Collectors.toList()));
                 PollVote lastVote = pollVoteDAO.findByVoterAndPoll(user, item.getPoll()).orElse(null);
-                if(lastVote!=null) pollResBody.setLastVoted(lastVote.getOption().getId());
+                if (lastVote != null)
+                    pollResBody.setLastVoted(lastVote.getOption().getId());
                 body.setPoll(pollResBody);
             }
             SentFromBody sentFromBody = new SentFromBody();
@@ -197,11 +214,11 @@ public class MessagingService {
         body.setId(item.getId());
         body.setType(item.getType());
         body.setDeleted(item.isDeleted());
-        if(item.isDeleted()) 
-            System.out.println("msg "+item.getId().toString());
+        if (item.isDeleted())
+            System.out.println("msg " + item.getId().toString());
         else
-            System.out.println("not deleted "+item.getId().toString());
-            
+            System.out.println("not deleted " + item.getId().toString());
+
         if ("text".equals(item.getType())) {
             TextMsgBody textBody = new TextMsgBody();
             textBody.setContent(item.getTextMessage().getContent());
@@ -218,14 +235,14 @@ public class MessagingService {
             pollResBody.setTitle(item.getPoll().getTitle());
             List<PollOption> op = optionDAO.findAllByPoll(item.getPoll());
             pollResBody.setOptions(op.stream()
-                .map(option -> {
-                    PollOptionResBody optionRes = new PollOptionResBody();
-                    optionRes.setValue(option.getValue());
-                    optionRes.setId(option.getId());
-                    optionRes.setNumVotes(option.getPollVotes().size());
-                    return optionRes;
-                })
-                .collect(Collectors.toList()));
+                    .map(option -> {
+                        PollOptionResBody optionRes = new PollOptionResBody();
+                        optionRes.setValue(option.getValue());
+                        optionRes.setId(option.getId());
+                        optionRes.setNumVotes(option.getPollVotes().size());
+                        return optionRes;
+                    })
+                    .collect(Collectors.toList()));
             body.setPoll(pollResBody);
         }
         SentFromBody sentFromBody = new SentFromBody();
@@ -278,25 +295,29 @@ public class MessagingService {
                 res);
     }
 
-
-    public void editMessage(Long id, MessageCreateBody msg, User user) throws NotFoundException{
+    public void editMessage(Long id, MessageCreateBody msg, User user) throws NotFoundException {
         ChatItem item = chatItemDAO.findById(id).orElseThrow(() -> new NotFoundException("ChatItem", id));
-        if("admin".equals(user.getType()) || item.getSentFrom()==user) {
-            if("text".equals(msg.getType())) {
-                if(msg.getText().getClass()!=null) item.getTextMessage().setContent(msg.getText().getContent());
+        if ("admin".equals(user.getType()) || item.getSentFrom() == user) {
+            if ("text".equals(msg.getType())) {
+                if (msg.getText().getClass() != null)
+                    item.getTextMessage().setContent(msg.getText().getContent());
                 textDAO.save(item.getTextMessage());
-            } else if("poll".equals(msg.getType())) {
-                if(msg.getPollEditBody().getDescription()!=null) item.getPoll().setDescription(msg.getPollEditBody().getDescription());
-                if(msg.getPollEditBody().getTitle()!=null) item.getPoll().setTitle(msg.getPollEditBody().getTitle());
-                for(PollOptionEditBody body : msg.getPollEditBody().getOptions()) {
-                    if("update".equals(body.getAction())) {
-                        PollOption option = optionDAO.findById(body.getOptionId()).orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
+            } else if ("poll".equals(msg.getType())) {
+                if (msg.getPollEditBody().getDescription() != null)
+                    item.getPoll().setDescription(msg.getPollEditBody().getDescription());
+                if (msg.getPollEditBody().getTitle() != null)
+                    item.getPoll().setTitle(msg.getPollEditBody().getTitle());
+                for (PollOptionEditBody body : msg.getPollEditBody().getOptions()) {
+                    if ("update".equals(body.getAction())) {
+                        PollOption option = optionDAO.findById(body.getOptionId())
+                                .orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
                         option.setValue(body.getValue());
                         optionDAO.save(option);
-                    } else if("delete".equals(body.getAction())) {
-                        PollOption option = optionDAO.findById(body.getOptionId()).orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
+                    } else if ("delete".equals(body.getAction())) {
+                        PollOption option = optionDAO.findById(body.getOptionId())
+                                .orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
                         optionDAO.delete(option);
-                    } else if("add".equals(body.getAction())) {
+                    } else if ("add".equals(body.getAction())) {
                         PollOption newOption = new PollOption();
                         newOption.setPoll(item.getPoll());
                         newOption.setValue(body.getValue());
@@ -305,21 +326,20 @@ public class MessagingService {
                 }
             }
         }
- 
 
     }
 
     public void deleteMessage(Long id, User user) throws NotFoundException {
         ChatItem item = chatItemDAO.findById(id).orElseThrow(() -> new NotFoundException("ChatItem", id));
-    
+
         if ("admin".equals(user.getType()) || user.equals(item.getSentFrom())) {
             item.setDeleted(true);
             chatItemDAO.findByReplyTo(item).forEach(replied -> {
                 replied.setReplyTo(null);
-                chatItemDAO.save(replied); 
+                chatItemDAO.save(replied);
             });
             chatItemDAO.save(item);
         }
     }
-    
+
 }
