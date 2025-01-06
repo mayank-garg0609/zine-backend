@@ -79,9 +79,9 @@ jobs:
     steps:
       - name: Deploy to Azure VM
         env:
-          PRIVATE_KEY: ${{ secrets.AZURE_VM_KEY }}
-          HOSTNAME: ${{ secrets.AZURE_VM_HOST }}
-          USER_NAME: ${{ secrets.AZURE_VM_USER }}
+          PRIVATE_KEY: ${{ secrets.AZURE_KEY }}
+          HOSTNAME: ${{ secrets.AZURE_HOST }}
+          USER_NAME: ${{ secrets.AZURE_USER }}
 
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
