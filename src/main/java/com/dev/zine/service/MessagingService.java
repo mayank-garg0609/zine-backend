@@ -2,8 +2,9 @@ package com.dev.zine.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -116,10 +117,11 @@ public class MessagingService {
     }
 
     public void fcmMessageBuilder(ChatItem item) {
-        List<String> bodyArgs = new ArrayList<>();
-        bodyArgs.add(item.getRoomId().getId().toString());
-        bodyArgs.add(item.getId().toString());
-        bodyArgs.add(item.getSentFrom().getEmail());
+        Map<String, String> bodyArgs = new HashMap<>();
+        bodyArgs.put("roomId", item.getRoomId().getId().toString());
+        bodyArgs.put("chatItemId", item.getId().toString());
+        bodyArgs.put("userEmail", item.getSentFrom().getEmail());
+
         if ("text".equals(item.getType())) {
             fcm.sendNotificationToTopic("room" + item.getRoomId().getId() + "", item.getRoomId().getName(),
                     item.getSentFrom().getName() + ": " + item.getTextMessage().getContent(), "", bodyArgs);
