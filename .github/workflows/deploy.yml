@@ -52,29 +52,41 @@ jobs:
             docker push ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
           fi
 
-      - name: Deploy Application
+  deploy-to-ec2:
+    name: Deploy to EC2 (main branch)
+    if: github.ref_name == 'main' # Executes only for the 'main' branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-          EC2_HOSTNAME: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
-          AZURE_PRIVATE_KEY: ${{ secrets.AZURE_KEY }}
-          AZURE_HOSTNAME: ${{ secrets.AZURE_HOST }}
-          AZURE_USER: ${{ secrets.AZURE_USER }}
+          HOSTNAME: ${{ secrets.EC2_HOST }}
+          USER_NAME: ${{ secrets.EC2_USER }}
+
         run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-            ssh -o StrictHostKeyChecking=no -i private_key ${EC2_USER}@${EC2_HOSTNAME} <<EOF
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
           docker stop zine-backend || true
           docker rm zine-backend || true
-          docker run -d --env-file .env --name zine-backend -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
-          EOF
-          else
-            echo "$AZURE_PRIVATE_KEY" > azure_private_key && chmod 600 azure_private_key
-            ssh -o StrictHostKeyChecking=no -i azure_private_key ${AZURE_USER}@${AZURE_HOSTNAME} <<EOF
-          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-          docker stop zine-backend-test || true
-          docker rm zine-backend-test || true
-          docker run -d --env-file .env.test --name zine-backend-test -p 3001:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
-          EOF
-          fi
+          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME }}/zine-backend:latest
+          '
+
+  deploy-to-azure:
+    name: Deploy to Azure VM (test branch)
+    if: github.ref_name == 'test' # Executes only for the 'test' branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Azure VM
+        env:
+          PRIVATE_KEY: ${{ secrets.AZURE_VM_KEY }}
+          HOSTNAME: ${{ secrets.AZURE_VM_HOST }}
+          USER_NAME: ${{ secrets.AZURE_VM_USER }}
+
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+          docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend:latest
+          docker stop zine-backend || true
+          docker rm zine-backend || true
+          docker run -d --env-file .env --name zine-backend -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend:latest
