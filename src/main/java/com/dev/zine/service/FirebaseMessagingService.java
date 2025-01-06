@@ -1,6 +1,7 @@
 package com.dev.zine.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,21 +41,17 @@ public class FirebaseMessagingService {
 
     }
 
-    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl, List<String> bodyLocalization) {
-        AndroidNotification notification = AndroidNotification.builder()
+    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl, Map<String, String> data) {
+        Notification notification = Notification.builder()
                 .setTitle(subject)
                 .setBody(content)
                 .setImage(imageUrl)
-                .addAllBodyLocalizationArgs(bodyLocalization)
-                .build(); 
-
-        AndroidConfig androidConfig = AndroidConfig.builder()
-                .setNotification(notification)
                 .build();
 
         Message message = Message.builder()
-                .setTopic(topic) 
-                .setAndroidConfig(androidConfig)
+                .setTopic(topic)
+                .setNotification(notification)
+                .putAllData(data)
                 .build();
 
         try {
