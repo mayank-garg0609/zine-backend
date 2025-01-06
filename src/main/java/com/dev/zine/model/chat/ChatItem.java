@@ -2,6 +2,9 @@ package com.dev.zine.model.chat;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.dev.zine.model.Media;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
@@ -47,8 +50,12 @@ public class ChatItem {
     @Column(name = "timestamp", nullable = false)
     private Timestamp timestamp;
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "reply_to_message_id")
+    @JoinColumn(name = "reply_to_message_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private ChatItem replyTo;
 }
