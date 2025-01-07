@@ -3,6 +3,8 @@ package com.dev.zine.model.chat;
 import com.dev.zine.model.User;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "poll_votes")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PollVote {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

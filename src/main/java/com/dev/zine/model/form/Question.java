@@ -23,6 +23,9 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Builder.Default
+    private boolean required = true;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "form_id")

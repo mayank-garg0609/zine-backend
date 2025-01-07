@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class QuestionCreateBody {
     private String type;
+    private boolean required;
     private TextMsgBody textMsgBody;
     private PollCreateBody pollBody;
 }
