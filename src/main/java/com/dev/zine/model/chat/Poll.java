@@ -6,13 +6,17 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "polls")
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Poll {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,9 +30,11 @@ public class Poll {
     private String description;
 
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PollOption> pollOptions = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PollVote> votes = new ArrayList<>();
 }
