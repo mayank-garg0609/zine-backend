@@ -4,7 +4,6 @@ import com.dev.zine.model.User;
 import com.dev.zine.model.chat.PollVote;
 import com.dev.zine.model.chat.TextMessage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.auto.value.AutoValue.Builder;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@lombok.Builder
 public class Response {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
