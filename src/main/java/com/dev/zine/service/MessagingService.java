@@ -135,14 +135,16 @@ public class MessagingService {
     }
 
     public Poll createPoll(PollCreateBody body) {
-        Poll newPoll = new Poll();
-        newPoll.setDescription(body.getDescription());
-        newPoll.setTitle(body.getTitle());
+        Poll newPoll = Poll.builder()
+                        .description(body.getDescription())
+                        .title(body.getTitle())
+                        .build();
         pollDAO.save(newPoll);
         for (String option : body.getPollOptions()) {
-            PollOption newOption = new PollOption();
-            newOption.setPoll(newPoll);
-            newOption.setValue(option);
+            PollOption newOption = PollOption.builder()
+                                    .poll(newPoll)
+                                    .value(option)
+                                    .build();
             optionDAO.save(newOption);
         }
         return newPoll;
@@ -320,9 +322,10 @@ public class MessagingService {
                                 .orElseThrow(() -> new NotFoundException("PollOption", body.getOptionId()));
                         optionDAO.delete(option);
                     } else if ("add".equals(body.getAction())) {
-                        PollOption newOption = new PollOption();
-                        newOption.setPoll(item.getPoll());
-                        newOption.setValue(body.getValue());
+                        PollOption newOption = PollOption.builder()
+                                    .poll(item.getPoll())
+                                    .value(body.getValue())
+                                    .build();
                         optionDAO.save(newOption);
                     }
                 }
