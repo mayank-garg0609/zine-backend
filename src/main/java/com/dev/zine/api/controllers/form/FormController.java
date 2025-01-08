@@ -8,6 +8,7 @@ import com.dev.zine.api.model.form.form_response.FormResponseBody;
 import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.model.User;
+import com.dev.zine.model.form.Form;
 import com.dev.zine.service.FormService;
 
 import java.util.List;
@@ -49,8 +50,8 @@ public class FormController {
     @PostMapping()
     public ResponseEntity<?> createForm(@RequestBody FormCreateBody body) {
         try {
-            formService.createForm(body);
-            return ResponseEntity.ok().build();
+            Form form = formService.createForm(body);
+            return ResponseEntity.ok().body(Map.of("form", form));
         } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
