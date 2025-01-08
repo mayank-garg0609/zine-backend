@@ -27,6 +27,7 @@ public class Form {
     private String name;
     private String description;
     private Timestamp date;
+    private boolean active;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "event_id", referencedColumnName = "id")

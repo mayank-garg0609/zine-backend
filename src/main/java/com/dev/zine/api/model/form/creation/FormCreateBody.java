@@ -9,5 +9,6 @@ public class FormCreateBody {
     private String name;
     private String description;
     private Long eventId;
+    private boolean active;
     private List<QuestionCreateBody> questions;
 }

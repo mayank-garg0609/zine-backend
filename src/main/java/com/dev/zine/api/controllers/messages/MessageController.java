@@ -3,23 +3,16 @@ package com.dev.zine.api.controllers.messages;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.protocol.HTTP;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.messages.creation.MessageCreateBody;
 import com.dev.zine.api.model.messages.response.MsgResBody;
 import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.exceptions.RoomDoesNotExist;
-import com.dev.zine.model.Message;
 import com.dev.zine.model.User;
-import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.service.MessagingService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,7 +24,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-// @Controller
 @RestController
 @RequestMapping("/messages")
 public class MessageController {
@@ -72,17 +64,6 @@ public class MessageController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-    
-
-
-    // @MessageMapping("/send")
-    // public void sendMessage(MessageBody message) {
-    //     try {
-    //         messagingService.sendMessage(message);
-    //     } catch (Exception ex) {
-    //         ex.printStackTrace();
-    //     }
-    // }
 
     @GetMapping("/roomMsg")
     public ResponseEntity<?> getRoomMessages(@RequestParam long roomId, @AuthenticationPrincipal User user) {
