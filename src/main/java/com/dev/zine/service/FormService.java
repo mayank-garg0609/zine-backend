@@ -51,7 +51,7 @@ public class FormService {
     @Autowired
     private EventDAO eventDAO;
 
-    public void createForm(FormCreateBody body) throws EventNotFound {
+    public Form createForm(FormCreateBody body) throws EventNotFound {
         Event event = eventDAO.findById(body.getEventId()).orElseThrow(() -> new EventNotFound(body.getEventId()));
         Form form = Form.builder()
                 .name(body.getName())
@@ -88,6 +88,7 @@ public class FormService {
             form.getQuestions().add(questionBuilder.build());
         });
         formDAO.save(form);
+        return form;
     }
 
     public List<Form> getAllForms() {
