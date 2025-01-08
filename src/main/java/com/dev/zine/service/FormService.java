@@ -70,17 +70,17 @@ public class FormService {
                     .required(input.isRequired());
             if (input.getType().equals("text")) {
                 TextMessage textMessage = TextMessage.builder()
-                        .content(input.getTextMsgBody().getContent())
+                        .content(input.getText().getContent())
                         .build();
                 messageDAO.save(textMessage);
                 questionBuilder.text(textMessage);
             } else if (input.getType().equals("poll")) {
                 Poll poll = Poll.builder()
-                        .title(input.getPollBody().getTitle())
-                        .description(input.getPollBody().getDescription())
+                        .title(input.getPoll().getTitle())
+                        .description(input.getPoll().getDescription())
                         .build();
                 pollDAO.save(poll);
-                input.getPollBody().getPollOptions().forEach(option -> {
+                input.getPoll().getPollOptions().forEach(option -> {
                     PollOption newOption = PollOption.builder()
                             .poll(poll)
                             .value(option)
