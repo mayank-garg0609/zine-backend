@@ -2,7 +2,9 @@ package com.dev.zine.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import com.dev.zine.dao.form.FormDAO;
 import com.dev.zine.dao.form.QuestionDAO;
 import com.dev.zine.dao.form.ResponseDAO;
 import com.dev.zine.exceptions.EventNotFound;
+import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.model.Event;
 import com.dev.zine.model.User;
@@ -55,6 +58,7 @@ public class FormService {
                 .description(body.getDescription())
                 .date(Timestamp.valueOf(LocalDateTime.now()))
                 .event(event)
+                .active(body.isActive())
                 .build();
 
         body.getQuestions().forEach(input -> {
@@ -90,11 +94,20 @@ public class FormService {
         return formDAO.findAll();
     }
 
+    public Form getForm(Long id) throws NotFoundException {
+        Form form = formDAO.findById(id).orElseThrow(() -> new NotFoundException("Form", id));
+        return form;
+    }
+
     public void deleteForm(Long id) {
         formDAO.deleteById(id);
     }
 
-    public void addResponse(Long id, List<FormResponseBody> responses, User user) throws NotFoundException {
+    public void addResponse(Long id, List<FormResponseBody> responses, User user)
+            throws NotFoundException, FormIsClosed {
+        Form form = formDAO.findById(id).orElseThrow(() -> new NotFoundException("Form", id));
+        if (!form.isActive())
+            throw new FormIsClosed();
         responses.forEach(input -> {
             try {
                 Question question = questionDAO.findById(input.getQuestionId())
@@ -129,4 +142,46 @@ public class FormService {
         });
 
     }
+
+    public String getResponses(Long id) throws NotFoundException {
+        Form form = formDAO.findById(id).orElseThrow(() -> new NotFoundException("Form", id));
+        StringBuilder csvContent = new StringBuilder();
+
+        csvContent.append("Name,Email");
+        List<Question> questions = form.getQuestions();
+        questions.forEach(question -> {
+            if (question.getType().equals("text")) {
+                csvContent.append(",").append(question.getText().getContent());
+            } else if (question.getType().equals("poll")) {
+                csvContent.append(",").append(question.getPoll().getTitle());
+            }
+        });
+        csvContent.append("\n");
+
+        Map<User, Map<Question, String>> userResponses = new HashMap<>();
+
+        for (Question question : questions) {
+            for (Response response : question.getResponses()) {
+                User user = response.getUser();
+                userResponses.putIfAbsent(user, new HashMap<>());
+                if(question.getType().equals("text")) {
+                    userResponses.get(user).put(question, response.getTextResponse().getContent());
+                } else if(question.getType().equals("poll")) {
+                    userResponses.get(user).put(question, response.getPollResponse().getOption().getValue());
+                }
+            }
+        }
+
+        userResponses.forEach((user, responses) -> {
+            csvContent.append(user.getName()).append(",").append(user.getEmail());
+            for (Question question : questions) {
+                String answer = responses.getOrDefault(question, ""); 
+                csvContent.append(",").append(answer);
+            }
+            csvContent.append("\n");
+        });
+
+        return csvContent.toString();
+    }
+
 }

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.form.creation.FormCreateBody;
 import com.dev.zine.api.model.form.form_response.FormResponseBody;
+import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.model.User;
 import com.dev.zine.service.FormService;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,19 +23,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
-
 @RestController
 @RequestMapping("/form")
 public class FormController {
     @Autowired
     private FormService formService;
     
+    @PreAuthorize("hasAuthority('admin')")
     @GetMapping()
     public ResponseEntity<?> getAllForms() {
         return ResponseEntity.ok().body(Map.of("forms", formService.getAllForms()));
     }
 
+    @PreAuthorize("hasAuthority('admin')")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getForm(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok().body(Map.of("form", formService.getForm(id)));
+        } catch(NotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
     @PostMapping()
     public ResponseEntity<?> createForm(@RequestBody FormCreateBody body) {
         try {
@@ -44,6 +56,7 @@ public class FormController {
         }
     }
 
+    @PreAuthorize("hasAuthority('admin')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteForm(@PathVariable Long id) {
         try {
@@ -54,16 +67,24 @@ public class FormController {
         }
     }
 
-    @PostMapping("/{id}/response")
+    @PostMapping("/{id}/responses")
     public ResponseEntity<?> addResponse(@PathVariable Long id, @RequestBody List<FormResponseBody> response, @AuthenticationPrincipal User user) {
         try {
             formService.addResponse(id, response, user);
             return ResponseEntity.ok().build();
+        } catch(NotFoundException | FormIsClosed e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @GetMapping("/{id}/responses")
+    public ResponseEntity<?> getResponses(@PathVariable Long id) {
+        try {
+            String res = formService.getResponses(id);
+            return ResponseEntity.ok().body(Map.of("csv", res));
         } catch(NotFoundException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-    
-    
-    
 }
