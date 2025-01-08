@@ -52,7 +52,11 @@ public class FormService {
     private EventDAO eventDAO;
 
     public Form createForm(FormCreateBody body) throws EventNotFound {
-        Event event = eventDAO.findById(body.getEventId()).orElseThrow(() -> new EventNotFound(body.getEventId()));
+        Event event = null;
+        if (body.getEventId() != null) {
+            event = eventDAO.findById(body.getEventId()).orElseThrow(() -> new EventNotFound(body.getEventId()));
+        }
+        
         Form form = Form.builder()
                 .name(body.getName())
                 .description(body.getDescription())
