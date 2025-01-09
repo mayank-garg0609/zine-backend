@@ -18,7 +18,7 @@ import com.dev.zine.model.chat.ChatItem;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Form {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
