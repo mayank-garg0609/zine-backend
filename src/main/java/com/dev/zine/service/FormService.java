@@ -189,7 +189,7 @@ public class FormService {
         return csvContent.toString();
     }
 
-    public List<Form> getUserForms(User user) {
+    public List<Long> getUserForms(User user) {
         return formDAO.findFormsUserHasNotFilled(user.getId());
     }
 

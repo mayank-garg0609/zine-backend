@@ -32,7 +32,6 @@ public class FormController {
     @Autowired
     private FormService formService;
     
-    @PreAuthorize("hasAuthority('admin')")
     @GetMapping()
     public ResponseEntity<?> getAllForms() {
         return ResponseEntity.ok().body(Map.of("forms", formService.getAllForms()));
@@ -94,7 +93,7 @@ public class FormController {
     @GetMapping("/unfilled")
     public ResponseEntity<?> getUserForms(@AuthenticationPrincipal User user) {
         try {
-            return ResponseEntity.ok().body(Map.of("forms", formService.getUserForms(user)));
+            return ResponseEntity.ok().body(Map.of("form-ids", formService.getUserForms(user)));
         } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
