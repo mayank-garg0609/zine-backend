@@ -29,11 +29,11 @@ public class Form {
     private Timestamp date;
     private boolean active;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "event_id", referencedColumnName = "id")
     private Event event;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "chat_item_id", referencedColumnName = "id")
     private ChatItem chatItem;
 
