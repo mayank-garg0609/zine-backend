@@ -189,4 +189,26 @@ public class FormService {
         return csvContent.toString();
     }
 
+    public List<Form> getUserForms(User user) {
+        return formDAO.findFormsUserHasNotFilled(user.getId());
+    }
+
+    public Form updateForm(Long id, FormCreateBody body) throws NotFoundException, EventNotFound {
+        Form form = formDAO.findById(id).orElseThrow(() -> new NotFoundException("Form", id));
+
+        Event event = null;
+        if (body.getEventId() != null) {
+            event = eventDAO.findById(body.getEventId()).orElseThrow(() -> new EventNotFound(body.getEventId()));
+        }
+        
+        Form updatedform = form.toBuilder()
+                .name(body.getName() != null ? body.getName() : form.getName())
+                .description(body.getDescription() != null ? body.getDescription() : form.getDescription())
+                .event(body.getEventId() != null && form.getEvent().getId() != body.getEventId() ? event : form.getEvent())
+                .active(body.isActive())
+                .build();
+        
+        formDAO.save(updatedform);
+        return updatedform;
+    }
 }

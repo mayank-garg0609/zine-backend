@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.form.creation.FormCreateBody;
 import com.dev.zine.api.model.form.form_response.FormResponseBody;
+import com.dev.zine.exceptions.EventNotFound;
 import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
 import com.dev.zine.model.User;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -85,6 +87,27 @@ public class FormController {
             String res = formService.getResponses(id);
             return ResponseEntity.ok().body(Map.of("csv", res));
         } catch(NotFoundException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/unfilled")
+    public ResponseEntity<?> getUserForms(@AuthenticationPrincipal User user) {
+        try {
+            return ResponseEntity.ok().body(Map.of("forms", formService.getUserForms(user)));
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> getUserForms(@PathVariable Long id, @RequestBody FormCreateBody body) {
+        try {
+            return ResponseEntity.ok().body(Map.of("form", formService.updateForm(id, body)));
+        } catch(NotFoundException | EventNotFound e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
