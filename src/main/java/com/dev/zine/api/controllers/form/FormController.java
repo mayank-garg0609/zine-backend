@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.form.creation.FormCreateBody;
 import com.dev.zine.api.model.form.form_response.FormResponseBody;
+import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EventNotFound;
 import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
@@ -74,7 +75,7 @@ public class FormController {
         try {
             formService.addResponse(id, response, user);
             return ResponseEntity.ok().build();
-        } catch(NotFoundException | FormIsClosed e) {
+        } catch(NotFoundException | FormIsClosed | EmailFailureException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }

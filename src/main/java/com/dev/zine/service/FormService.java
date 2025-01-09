@@ -19,6 +19,7 @@ import com.dev.zine.dao.chat.PollVoteDAO;
 import com.dev.zine.dao.form.FormDAO;
 import com.dev.zine.dao.form.QuestionDAO;
 import com.dev.zine.dao.form.ResponseDAO;
+import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EventNotFound;
 import com.dev.zine.exceptions.FormIsClosed;
 import com.dev.zine.exceptions.NotFoundException;
@@ -50,6 +51,8 @@ public class FormService {
     private PollVoteDAO pollVoteDAO;
     @Autowired
     private EventDAO eventDAO;
+    @Autowired
+    private EmailService emailService;
 
     public Form createForm(FormCreateBody body) throws EventNotFound {
         Event event = null;
@@ -109,7 +112,7 @@ public class FormService {
     }
 
     public void addResponse(Long id, List<FormResponseBody> responses, User user)
-            throws NotFoundException, FormIsClosed {
+            throws NotFoundException, FormIsClosed, EmailFailureException {
         Form form = formDAO.findById(id).orElseThrow(() -> new NotFoundException("Form", id));
         if (!form.isActive())
             throw new FormIsClosed();
@@ -145,6 +148,11 @@ public class FormService {
                 throw new RuntimeException("Error processing response: " + e.getMessage(), e);
             }
         });
+        try {
+            emailService.sendUserFormResponse(form, user);
+        } catch(EmailFailureException e) {
+            throw e;
+        }
 
     }
 
@@ -211,4 +219,5 @@ public class FormService {
         formDAO.save(updatedform);
         return updatedform;
     }
+
 }
