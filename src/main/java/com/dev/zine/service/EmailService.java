@@ -1,6 +1,7 @@
 package com.dev.zine.service;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -132,7 +133,7 @@ public class EmailService {
 
     public void sendUserFormResponse(Form form, User user) throws EmailFailureException {
         try {
-            Map<String, String> questionToAnswer = new HashMap<>();
+            Map<String, String> questionToAnswer = new LinkedHashMap<>();
             List<Question> questions = form.getQuestions();
             for (Question question : questions) {
                 for (Response response : question.getResponses()) {
