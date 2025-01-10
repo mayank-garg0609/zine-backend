@@ -190,6 +190,7 @@ public class RoomMembersService {
                         response.setEmail(user.getEmail());
                         response.setRole(roomMember.getRole());
                         response.setDpUrl(user.getDp());
+                        response.setId(user.getId());
                         return response;
                     })
                     .collect(Collectors.toList());
