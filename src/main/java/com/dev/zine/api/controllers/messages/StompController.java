@@ -5,8 +5,12 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import com.dev.zine.api.model.messages.MessageBody;
-import com.dev.zine.model.Message;
+
+import com.dev.zine.api.model.messages.PollVoteBody;
+import com.dev.zine.api.model.messages.creation.MessageCreateBody;
+import com.dev.zine.api.model.messages.response.BroadcastMsgBody;
+import com.dev.zine.exceptions.NotFoundException;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.service.MessagingService;
 
 @Controller
@@ -18,13 +22,22 @@ public class StompController {
     private SimpMessagingTemplate simpMessagingTemplate;
     
     @MessageMapping("/message")
-    public void sendStompMessage(@Payload MessageBody msg) {
+    public void sendStompMessage(@Payload MessageCreateBody msg) {
         try {
-            Message message = messagingService.sendMessage(msg);
+            BroadcastMsgBody message = messagingService.sendMessage(msg);
             simpMessagingTemplate.convertAndSend("/room/" + msg.getRoomId(),
                 message);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    @MessageMapping("/poll-vote")
+    public void updatePoll(@Payload PollVoteBody vote) {
+        try {
+            messagingService.registerVote(vote);
+        } catch(UserNotFound | NotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

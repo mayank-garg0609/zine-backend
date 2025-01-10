@@ -3,7 +3,9 @@ package com.dev.zine.service;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +48,14 @@ public class CheckpointsService {
 
         checkpointsDAO.save(checkpoint);
 
+        Map<String, String> bodyArgs = new HashMap<>();
+        bodyArgs.put("roomId", instance.getRoomId().getId().toString());
+        bodyArgs.put("checkpointId", checkpoint.getId().toString());
+        bodyArgs.put("userEmail", user.getEmail());
+
         String prefix = body.getRemark() ? "[REMARK]" : "[CHECKPOINT]";
         fcm.sendNotificationToTopic("room" + instance.getRoomId().getId()+"", instance.getRoomId().getName(),
-                prefix + ": " + body.getContent(), null);
+                prefix + ": " + body.getContent(), null, bodyArgs);
         
         CheckpointResBody resBody = new CheckpointResBody();
         resBody.setContent(checkpoint.getContent());

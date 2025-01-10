@@ -1,6 +1,7 @@
 package com.dev.zine.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.Notification;
 
 @Service
@@ -38,7 +41,7 @@ public class FirebaseMessagingService {
 
     }
 
-    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl) {
+    public void sendNotificationToTopic(String topic, String subject, String content, String imageUrl, Map<String, String> data) {
         Notification notification = Notification.builder()
                 .setTitle(subject)
                 .setBody(content)
@@ -48,6 +51,7 @@ public class FirebaseMessagingService {
         Message message = Message.builder()
                 .setTopic(topic)
                 .setNotification(notification)
+                .putAllData(data)
                 .build();
 
         try {

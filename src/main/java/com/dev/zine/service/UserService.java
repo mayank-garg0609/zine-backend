@@ -1,5 +1,7 @@
 package com.dev.zine.service;
 
+import org.hibernate.sql.exec.ExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -11,11 +13,14 @@ import com.dev.zine.api.model.auth.LoginBody;
 import com.dev.zine.api.model.auth.PasswordResetBody;
 import com.dev.zine.api.model.auth.RegistrationBody;
 import com.dev.zine.api.model.images.ImagesUploadRes;
+import com.dev.zine.api.model.roomMembers.Members;
+import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.user.TokenUpdateBody;
 import com.dev.zine.dao.HackathonRegistrationDAO;
 import com.dev.zine.dao.MediaDAO;
 import com.dev.zine.dao.RoleDAO;
 import com.dev.zine.dao.RoomMembersDAO;
+import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
 import com.dev.zine.dao.UserToRoleDAO;
 import com.dev.zine.dao.VerificationTokenDAO;
@@ -23,6 +28,7 @@ import com.dev.zine.exceptions.EmailFailureException;
 import com.dev.zine.exceptions.EmailNotFoundException;
 import com.dev.zine.exceptions.IncorrectPasswordException;
 import com.dev.zine.exceptions.MediaUploadFailed;
+import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserAlreadyExistsException;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.exceptions.UserNotVerifiedException;
@@ -69,6 +75,10 @@ public class UserService {
     @Autowired
     private MediaDAO mediaDAO;
     @Autowired
+    private RoomsDAO roomsDAO;
+    @Autowired
+    private RoomMembersService roomMembersService;
+    @Autowired
     private CloudinaryUtil mediaUtil;
     private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
  
@@ -97,6 +107,9 @@ public class UserService {
         }
 
         userDAO.save(user);
+        if(user.getEmail().matches(regex2024)) {
+            addUserToWorkshopRooms(user);
+        }
 
         // String findRole = user.getEmail().substring(0, 4);
         // Role role = roleDAO.findByRoleName(findRole).orElse(null);
@@ -338,4 +351,21 @@ public class UserService {
             throw new MediaUploadFailed(e.getMessage());
         }
     }
+
+    public void addUserToWorkshopRooms(User user) {
+        List<Long> roomIds = roomsDAO.getRoomIdsByType("workshop");
+        roomIds.forEach(roomId -> {
+            try {
+                MembersList body = new MembersList();
+                body.setRoom(roomId);
+                List<Members> list = new ArrayList<>();
+                list.add(new Members(user.getEmail(), "user"));
+                body.setMembers(list);
+                roomMembersService.addMembers(body);
+            } catch(RoomDoesNotExist | InterruptedException | ExecutionException e) {
+                System.out.println(e.getMessage());
+            }
+        });
+    }
+    
 }

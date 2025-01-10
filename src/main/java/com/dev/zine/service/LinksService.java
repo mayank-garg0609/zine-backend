@@ -3,7 +3,9 @@ package com.dev.zine.service;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +47,14 @@ public class LinksService {
         link.setSentFrom(user);
         linksDAO.save(link);
 
+        Map<String, String> bodyArgs = new HashMap<>();
+        bodyArgs.put("roomId", instance.getRoomId().getId().toString());
+        bodyArgs.put("linkId", link.getId().toString());
+        bodyArgs.put("userEmail", user.getEmail());
+
         String prefix = "[LINK]";
         fcm.sendNotificationToTopic("room" + instance.getRoomId().getId()+"", instance.getRoomId().getName(),
-                prefix + ": " + body.getLink(), null);
+                prefix + ": " + body.getLink(), null, bodyArgs);
         
         LinkResBody resBody = new LinkResBody();
         resBody.setId(link.getId());
