@@ -17,4 +17,6 @@ public class MembersResponse {
 
     private String dpUrl;
 
+    private Long id;
+
 }
