@@ -64,6 +64,6 @@ jobs:
           sudo docker pull ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
           sudo docker stop zine-backend-test || true
           sudo docker rm zine-backend-test || true
-          sudo docker run -d --env-file env.test --name zine-backend-test -p 80:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
+          sudo docker run -d --env-file env.test --name zine-backend-test -p 3000:8080 ${{ secrets.DOCKERHUB_USERNAME2 }}/zine-backend-test:latest
         fi
         EOF
