@@ -78,15 +78,5 @@ public class EventControllers {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @GetMapping("/hackathon/registration-info")
-    public ResponseEntity<?> getRegistrationInfo() {
-        try {
-            HackathonRegistrationsBody response = eventService.getHackthonRegistrations();
-            return ResponseEntity.ok().body(response);
-        } catch(Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
-        }
-    }
     
 }

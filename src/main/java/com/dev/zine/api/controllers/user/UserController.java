@@ -145,48 +145,6 @@ public class UserController {
         }
     }
 
-    @PostMapping("/register/hackathon")
-    public ResponseEntity<?> registerHackthon(@AuthenticationPrincipal User user) {
-        try {
-            String res = userService.registerHackthon(user);
-            if(res=="ALREADY_REGISTERED") {
-                return ResponseEntity.badRequest().body(Map.of("message","User is already registered"));
-            } else if(res=="NOT_EMAIL_VERIFIED") {
-                return ResponseEntity.badRequest().body(Map.of("message","User is not email verified"));
-            } else if(res=="SUCCESS") {
-                return ResponseEntity.ok().body(Map.of("message","success"));
-            } else if(res=="TOKEN_MISSING") {
-                return ResponseEntity.badRequest().body(Map.of("message","JWT token is missing"));
-            } else
-                return ResponseEntity.internalServerError().body(Map.of("message","failed"));
-        } catch(IllegalArgumentException e) {
-            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
-        } catch(Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
-        }
-    }
-
-    @GetMapping("/register/hackathon")
-    public ResponseEntity<?> checkHackthonRegistration(@AuthenticationPrincipal User user) {
-        try {
-            if(user==null) {
-                return ResponseEntity.badRequest().body(Map.of("message","JWT token is missing/incorrect"));
-            }
-            else if(userService.checkHackthonRegistration(user)){
-                System.out.println(user.getName());
-                return ResponseEntity.ok().body(Map.of("message","User is registered", "status", "registered"));
-            } else{
-                System.out.println(user.getName());
-                return ResponseEntity.ok().body(Map.of("message","User is not registered", "status", "not_registered"));
-                
-            }
-        } catch(IllegalArgumentException e) {
-            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
-        } catch(Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("message","failed"));
-        }
-    }
-
     @PostMapping("/update-dp")
     public ResponseEntity<?> uploadUserDp(@AuthenticationPrincipal User user, @RequestParam MultipartFile file, @RequestParam boolean delete) {
         try {
