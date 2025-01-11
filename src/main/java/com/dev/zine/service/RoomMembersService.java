@@ -18,16 +18,16 @@ import com.dev.zine.api.model.user.AssignResponse;
 import com.dev.zine.api.model.room.RoomResBody;
 import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.Members;
-import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomMembersDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
+import com.dev.zine.dao.chat.ChatItemDAO;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.RoomMemberNotFound;
-import com.dev.zine.model.Message;
 import com.dev.zine.model.RoomMembers;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
+import com.dev.zine.model.chat.ChatItem;
 
 import org.springframework.http.HttpStatus;
 import jakarta.transaction.Transactional;
@@ -47,7 +47,7 @@ public class RoomMembersService {
     @Autowired
     private UserLastSeenService userLastSeenService;
     @Autowired
-    private MessagesDAO messagesDAO;
+    private ChatItemDAO chatItemDAO;
 
     public ResponseEntity<List<RoomResBody>> getRoomsByEmail(String email) {
         try{
@@ -63,8 +63,8 @@ public class RoomMembersService {
                     if(opRoom.isPresent()){
                         Rooms room = opRoom.get();
                         Timestamp lastSeen = userLastSeenService.getLastSeen(user, room);
-                        Timestamp lastMessageTimestamp = messagesDAO.findFirstByRoomIdOrderByTimestampDesc(room).map(Message::getTimestamp).orElse(null);
-                        Long unreadMessages = messagesDAO.countUnreadMessages(room, lastSeen);
+                        Timestamp lastMessageTimestamp = chatItemDAO.findFirstByRoomIdAndDeletedFalseOrderByTimestampDesc(room).map(ChatItem::getTimestamp).orElse(null);
+                        Long unreadMessages = chatItemDAO.countUnreadMessages(room, lastSeen);
                         RoomResBody body = new RoomResBody();
                         body.setRoom(room);
                         body.setLastMessageTimestamp(lastMessageTimestamp);
