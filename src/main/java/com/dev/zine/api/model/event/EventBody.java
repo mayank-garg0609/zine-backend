@@ -24,6 +24,8 @@ public class EventBody {
 
     private Long recruitment;
 
+    private String dpUrl;
+
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Date startDateTime;

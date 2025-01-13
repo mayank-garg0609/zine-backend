@@ -28,6 +28,9 @@ public class Event {
     private String type;
 
     @NotNull
+    private String dpUrl;
+
+    @NotNull
     @Column(name = "name")
     private String name;
 
