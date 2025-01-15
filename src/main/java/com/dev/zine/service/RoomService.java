@@ -13,16 +13,16 @@ import com.dev.zine.api.model.images.ImagesUploadRes;
 import com.dev.zine.api.model.room.RoomBody;
 import com.dev.zine.api.model.room.RoomResBody;
 import com.dev.zine.dao.MediaDAO;
-import com.dev.zine.dao.MessagesDAO;
 import com.dev.zine.dao.RoomsDAO;
 import com.dev.zine.dao.UserDAO;
+import com.dev.zine.dao.chat.ChatItemDAO;
 import com.dev.zine.exceptions.MediaUploadFailed;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.model.Media;
-import com.dev.zine.model.Message;
 import com.dev.zine.model.Rooms;
 import com.dev.zine.model.User;
+import com.dev.zine.model.chat.ChatItem;
 import com.dev.zine.utils.CloudinaryUtil;
 
 import jakarta.transaction.Transactional;
@@ -34,7 +34,7 @@ public class RoomService {
     @Autowired
     private UserLastSeenService userLastSeenService;
     @Autowired
-    private MessagesDAO messagesDAO;
+    private ChatItemDAO chatItemDAO;
     @Autowired
     private UserDAO userDAO;
     @Autowired
@@ -113,8 +113,8 @@ public class RoomService {
         User user = userDAO.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFound());
         Rooms announcementRoom = announcementRoomList.get(0);
         Timestamp lastSeen = userLastSeenService.getLastSeen(user, announcementRoom);
-        Timestamp lastMessageTimestamp = messagesDAO.findFirstByRoomIdOrderByTimestampDesc(announcementRoom).map(Message::getTimestamp).orElse(null);
-        Long unreadMessages = messagesDAO.countUnreadMessages(announcementRoom, lastSeen);
+        Timestamp lastMessageTimestamp = chatItemDAO.findFirstByRoomIdAndDeletedFalseOrderByTimestampDesc(announcementRoom).map(ChatItem::getTimestamp).orElse(null);
+        Long unreadMessages = chatItemDAO.countUnreadMessages(announcementRoom, lastSeen);
         RoomResBody body = new RoomResBody();
         body.setRoom(announcementRoom);
         body.setLastMessageTimestamp(lastMessageTimestamp);

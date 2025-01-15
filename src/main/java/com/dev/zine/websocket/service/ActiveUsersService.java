@@ -19,6 +19,10 @@ public class ActiveUsersService {
         connectedUsers.put(sessionId, email);
     }
 
+    public String getEmail(String sessionId) {
+        return connectedUsers.get(sessionId);
+    }
+
     public void addUserToRoom(String roomId, String sessionId) {
         roomUsers.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
     }

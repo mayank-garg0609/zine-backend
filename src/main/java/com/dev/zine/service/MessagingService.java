@@ -189,6 +189,7 @@ public class MessagingService {
                     res.setValue(option.getValue());
                     res.setId(option.getId());
                     res.setNumVotes(option.getPollVotes().size());
+                    res.setVoterIds(pollVoteDAO.getVoterIds(option));
                     return res;
                 })
                         .collect(Collectors.toList()));
@@ -244,6 +245,7 @@ public class MessagingService {
                         optionRes.setValue(option.getValue());
                         optionRes.setId(option.getId());
                         optionRes.setNumVotes(option.getPollVotes().size());
+                        optionRes.setVoterIds(pollVoteDAO.getVoterIds(option));
                         return optionRes;
                     })
                     .collect(Collectors.toList()));
@@ -289,6 +291,7 @@ public class MessagingService {
             pollRes.setValue(option.getValue());
             pollRes.setId(option.getId());
             pollRes.setNumVotes(pollVoteDAO.countByOption(option));
+            pollRes.setVoterIds(pollVoteDAO.getVoterIds(option));
             return pollRes;
         }).collect(Collectors.toList()));
 

@@ -12,7 +12,10 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import com.dev.zine.exceptions.MissingAuthorizationToken;
+import com.dev.zine.exceptions.RoomDoesNotExist;
+import com.dev.zine.exceptions.UserNotFound;
 import com.dev.zine.service.JWTService;
+import com.dev.zine.service.UserLastSeenService;
 import com.dev.zine.websocket.service.ActiveUsersService;
 
 @Component
@@ -20,6 +23,7 @@ public class WebSocketEventListener {
     @Autowired SimpMessagingTemplate simpMessagingTemplate;
     @Autowired JWTService jwtService;
     @Autowired ActiveUsersService activeUsersService;
+    @Autowired UserLastSeenService lastSeenService;
 
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) throws MissingAuthorizationToken {
@@ -53,6 +57,11 @@ public class WebSocketEventListener {
                 broadcastActiveUsers(rem);
             }
             activeUsersService.addUserToRoom(roomId, sessionId); 
+            try {
+                lastSeenService.updateLastSeen(activeUsersService.getEmail(sessionId), Long.valueOf(roomId));
+            } catch(RoomDoesNotExist | UserNotFound e) {
+                e.printStackTrace();
+            }
             Set<String> activeUserEmails = activeUsersService.getActiveUserEmails(roomId);
             System.out.println("Active users in room " + roomId + ": " + activeUserEmails);
             broadcastActiveUsers(roomId); 

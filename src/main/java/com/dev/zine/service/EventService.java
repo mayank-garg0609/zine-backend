@@ -47,6 +47,7 @@ public class EventService {
         newEvent.setName(body.getName());
         newEvent.setType(body.getType());
         newEvent.setVenue(body.getVenue());
+        newEvent.setDpUrl(body.getDpUrl());
         eventDAO.save(newEvent);
         return newEvent;
     }
