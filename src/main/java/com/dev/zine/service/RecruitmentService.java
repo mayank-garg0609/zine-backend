@@ -42,7 +42,7 @@ public class RecruitmentService {
 
     public Recruitment editRecruitment(Long id, RecruitmentCreateBody update) throws RecruitmentNotFound, StageAlreadyExists{
         Recruitment existing = recruitmentDAO.findById(id).orElseThrow(() -> new RecruitmentNotFound(id));
-        if(recruitmentDAO.existsByStage(update.getStage())){
+        if(update.getStage() != existing.getStage() && recruitmentDAO.existsByStage(update.getStage())){
             throw new StageAlreadyExists(update.getStage());
         }
         try{
