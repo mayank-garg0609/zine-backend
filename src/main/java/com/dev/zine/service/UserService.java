@@ -65,7 +65,8 @@ public class UserService {
     private UserToRoleDAO userToRoleDAO;
     @Autowired
     private RoomMembersDAO roomMembersDAO;
-    @Autowired FirebaseMessagingService firebaseMessagingService;
+    @Autowired
+    FirebaseMessagingService firebaseMessagingService;
     @Autowired
     private JavaMailSender emailSender;
     @Autowired
@@ -77,7 +78,7 @@ public class UserService {
     @Autowired
     private CloudinaryUtil mediaUtil;
     private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
- 
+
     /**
      * Attempts to register a user given the information provided.
      * 
@@ -103,20 +104,20 @@ public class UserService {
         }
 
         userDAO.save(user);
-        if(user.getEmail().matches(regex2024)) {
-            addUserToWorkshopRooms(user);
-        }
+        // if (user.getEmail().matches(regex2024)) {
+        // }
+        addUserToWorkshopRooms(user);
 
         // String findRole = user.getEmail().substring(0, 4);
         // Role role = roleDAO.findByRoleName(findRole).orElse(null);
         // if(role != null) {
-        //     UserToRole roleMapping = new UserToRole();
-        //     roleMapping.setRole(role);
-        //     roleMapping.setUser(user);
-        //     userToRoleDAO.save(roleMapping);
+        // UserToRole roleMapping = new UserToRole();
+        // roleMapping.setRole(role);
+        // roleMapping.setUser(user);
+        // userToRoleDAO.save(roleMapping);
         // }
 
-        return user; 
+        return user;
     }
 
     /**
@@ -131,7 +132,7 @@ public class UserService {
         verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis()));
         verificationToken.setUser(user);
 
-        user.getVerificationTokens().add(verificationToken); //adds token to the list
+        user.getVerificationTokens().add(verificationToken); // adds token to the list
         return verificationToken;
     }
 
@@ -139,14 +140,14 @@ public class UserService {
         String applicationNumber = UUID.randomUUID().toString();
         String messageText = String.format(
                 "<html><body>" +
-                "<p>Dear user,</p>" +
-                "<p>Your account and associated data will be <strong>%s</strong> deleted in 30 days. If you wish to cancel this request, please contact support.</p>" +
-                "<p>Your application number is: <strong>%s</strong></p>" +
-                "<p>Thank you.</p>" +
-                "</body></html>",
+                        "<p>Dear user,</p>" +
+                        "<p>Your account and associated data will be <strong>%s</strong> deleted in 30 days. If you wish to cancel this request, please contact support.</p>"
+                        +
+                        "<p>Your application number is: <strong>%s</strong></p>" +
+                        "<p>Thank you.</p>" +
+                        "</body></html>",
                 deletionOption.equals("full") ? "fully" : "partially",
-                applicationNumber
-        );
+                applicationNumber);
 
         try {
             MimeMessage message = emailSender.createMimeMessage();
@@ -163,33 +164,35 @@ public class UserService {
     }
 
     @Transactional
-    public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException, UserNotFound, IncorrectPasswordException {
+    public String loginUser(LoginBody loginBody)
+            throws UserNotVerifiedException, EmailFailureException, UserNotFound, IncorrectPasswordException {
         Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exists
         if (opUser.isPresent()) {
             User user = opUser.get();
-            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { //verify password
+            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { // verify password
                 if (user.isEmailVerified()) {
                     // System.out.println(loginBody.getPushToken());
-                    if(user.getEmail().matches(regex2024)) {
+                    if (user.getEmail().matches(regex2024)) {
                         Role role2024 = roleDAO.findByRoleName("2024").orElse(null);
-                        if(role2024 != null && !userToRoleDAO.existsByUserAndRole(user, role2024)) {
+                        if (role2024 != null && !userToRoleDAO.existsByUserAndRole(user, role2024)) {
                             UserToRole newMapping = new UserToRole();
                             newMapping.setRole(role2024);
                             newMapping.setUser(user);
                             userToRoleDAO.save(newMapping);
                         }
                     }
-                    if(loginBody.getPushToken() != null) {
+                    if (loginBody.getPushToken() != null) {
                         updateToken(user, loginBody.getPushToken());
                     }
-                    return jwtService.generateJWT(user); // generate 
+                    addUserToWorkshopRooms(user);
+                    return jwtService.generateJWT(user); // generate
                 } else {
                     List<VerificationToken> verificationTokens = user.getVerificationTokens();
-                    boolean resend = verificationTokens.isEmpty() || 
+                    boolean resend = verificationTokens.isEmpty() ||
                             verificationTokens.get(0).getCreatedTimestamp()
-                                    .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000))); 
-                                    // checks if tokens list is empty 
-                                    //or the latest token is older than 1hr
+                                    .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
+                    // checks if tokens list is empty
+                    // or the latest token is older than 1hr
 
                     if (resend) {
                         VerificationToken verificationToken = createVerificationToken(user);
@@ -201,7 +204,7 @@ public class UserService {
             } else {
                 throw new IncorrectPasswordException();
             }
-        } 
+        }
         throw new UserNotFound();
     }
 
@@ -243,7 +246,7 @@ public class UserService {
                 user.setPassword(encryptionService.encryptPassword(body.getPassword()));
                 userDAO.save(user);
             }
-        } catch(TokenExpiredException e) {
+        } catch (TokenExpiredException e) {
             throw e;
         }
     }
@@ -252,29 +255,34 @@ public class UserService {
         try {
             String oldToken = user.getPushToken();
 
-            if(newToken == oldToken) return;
-            
+            if (newToken == oldToken)
+                return;
+
             user.setPushToken(newToken);
             userDAO.save(user);
 
             List<RoomMembers> roomMembers = roomMembersDAO.findByUser(user);
 
-            for(RoomMembers member: roomMembers) {
+            for (RoomMembers member : roomMembers) {
                 String topic = "room" + member.getRoom().getId().toString();
 
-                if(oldToken != null) {
-                    List<String> oldTokenList = new ArrayList<String>() {{
-                        add(oldToken);
-                    }};
+                if (oldToken != null) {
+                    List<String> oldTokenList = new ArrayList<String>() {
+                        {
+                            add(oldToken);
+                        }
+                    };
                     firebaseMessagingService.unsubscribeFromTopic(oldTokenList, topic);
                 }
-                
-                List<String> newTokenList = new ArrayList<>() {{
-                    add(newToken);
-                }};
+
+                List<String> newTokenList = new ArrayList<>() {
+                    {
+                        add(newToken);
+                    }
+                };
                 firebaseMessagingService.subscribeToTopic(newTokenList, topic);
             }
-        }  catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -285,30 +293,35 @@ public class UserService {
     }
 
     public String toggleRegistration(User user) {
-        try{
-            if(user == null) return "TOKEN_MISSING";
-            if(user.isRegistered()) return "ALREADY_REGISTERED"; 
-            if(!user.isEmailVerified()) return "NOT_EMAIL_VERIFIED";
+        try {
+            if (user == null)
+                return "TOKEN_MISSING";
+            if (user.isRegistered())
+                return "ALREADY_REGISTERED";
+            if (!user.isEmailVerified())
+                return "NOT_EMAIL_VERIFIED";
             user.setRegistered(true);
             userDAO.save(user);
             return "SUCCESS";
-        } catch(Exception e) {
+        } catch (Exception e) {
             return "FAILED";
         }
     }
 
-    public ImagesUploadRes updateDp(User user, MultipartFile file, boolean delete) throws UserNotFound, MediaUploadFailed{
+    public ImagesUploadRes updateDp(User user, MultipartFile file, boolean delete)
+            throws UserNotFound, MediaUploadFailed {
         try {
-            if(user == null) throw new UserNotFound();
-            if(user.getImagePath() != null) {
+            if (user == null)
+                throw new UserNotFound();
+            if (user.getImagePath() != null) {
                 Optional<Media> oldImage = mediaDAO.findByUrl(user.getImagePath());
-                    if(oldImage.isPresent()){
-                        mediaDAO.delete(oldImage.get());
-                        mediaUtil.deleteImage(oldImage.get().getPublicId());
-                    }
+                if (oldImage.isPresent()) {
+                    mediaDAO.delete(oldImage.get());
+                    mediaUtil.deleteImage(oldImage.get().getPublicId());
+                }
             }
             ImagesUploadRes res = new ImagesUploadRes();
-            if(delete) {
+            if (delete) {
                 user.setImagePath(null);
                 userDAO.save(user);
                 res.setMessage("DP successfully deleted!");
@@ -319,18 +332,22 @@ public class UserService {
                 newImage.setPublicId(res.getPublicId());
                 newImage.setUrl(res.getUrl());
                 mediaDAO.save(newImage);
-    
+
                 user.setImagePath(res.getUrl());
                 userDAO.save(user);
                 return res;
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new MediaUploadFailed(e.getMessage());
         }
     }
 
     public void addUserToWorkshopRooms(User user) {
         List<Long> roomIds = roomsDAO.getRoomIdsByType("workshop");
+        List<String> tokens = new ArrayList<>();
+        if(user.getPushToken()!=null) { 
+            tokens.add(user.getPushToken()); 
+        } 
         roomIds.forEach(roomId -> {
             try {
                 MembersList body = new MembersList();
@@ -344,5 +361,5 @@ public class UserService {
             }
         });
     }
-    
+
 }
