@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dev.zine.api.model.roomMembers.MemberRoleUpdate;
 import com.dev.zine.api.model.roomMembers.MembersList;
 import com.dev.zine.api.model.roomMembers.MembersResponse;
+import com.dev.zine.api.model.roomMembers.MembersRoomsList;
 import com.dev.zine.api.model.roomMembers.RemoveMembersList;
+import com.dev.zine.api.model.roomMembers.RemoveMembersRoomsList;
 import com.dev.zine.api.model.user.AssignResponse;
+import com.dev.zine.api.model.user.AssignResponseMultipleRooms;
 import com.dev.zine.exceptions.RoomDoesNotExist;
 import com.dev.zine.exceptions.RoomMemberNotFound;
 import com.dev.zine.service.RoomMembersService;
@@ -43,12 +46,38 @@ public class RoomMembersController {
         }
     }
 
+    @PostMapping("/add-to-rooms")
+    public ResponseEntity<?> addRooms(@Valid @RequestBody MembersRoomsList addMembersBody) {
+        // System.out.println("addMembersBody");
+        // System.out.println(addMembersBody);
+        try {
+            AssignResponseMultipleRooms res = roomMembersService.addMembersToRooms(addMembersBody);
+            return ResponseEntity.ok().body(res);
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/remove")
     public ResponseEntity<?> remove(@Valid @RequestBody RemoveMembersList removeMembersBody) {
         System.out.println(removeMembersBody);
         try {
             String message = roomMembersService.removeMembers(removeMembersBody);
             return ResponseEntity.ok(message);
+        } catch (RoomDoesNotExist ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/remove-from-rooms")
+    public ResponseEntity<?> removeMemberFromRooms(@Valid @RequestBody RemoveMembersRoomsList body) {
+        try {
+            roomMembersService.removeMembersFromRooms(body);;
+            return ResponseEntity.ok().build();
         } catch (RoomDoesNotExist ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room does not exist");
         } catch (Exception ex) {
