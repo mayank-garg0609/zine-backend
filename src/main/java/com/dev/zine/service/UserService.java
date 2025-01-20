@@ -78,6 +78,7 @@ public class UserService {
     @Autowired
     private CloudinaryUtil mediaUtil;
     private String regex2024 = "^2024.*@mnit\\.ac\\.in$";
+    private String mnitEmailRegex = "^[a-zA-Z0-9._%+-]+@mnit\\.ac\\.in$";
 
     /**
      * Attempts to register a user given the information provided.
@@ -106,7 +107,9 @@ public class UserService {
         userDAO.save(user);
         // if (user.getEmail().matches(regex2024)) {
         // }
-        addUserToWorkshopRooms(user);
+        if(user.getEmail().matches(mnitEmailRegex)) {
+            addUserToWorkshopRooms(user);
+        }
 
         // String findRole = user.getEmail().substring(0, 4);
         // Role role = roleDAO.findByRoleName(findRole).orElse(null);
@@ -184,7 +187,10 @@ public class UserService {
                     if (loginBody.getPushToken() != null) {
                         updateToken(user, loginBody.getPushToken());
                     }
-                    addUserToWorkshopRooms(user);
+                    // addUserToWorkshopRooms(user);
+                    if(user.getEmail().matches(mnitEmailRegex)) {
+                        addUserToWorkshopRooms(user);
+                    }
                     return jwtService.generateJWT(user); // generate
                 } else {
                     List<VerificationToken> verificationTokens = user.getVerificationTokens();
@@ -248,6 +254,15 @@ public class UserService {
             }
         } catch (TokenExpiredException e) {
             throw e;
+        }
+    }
+
+    public void deleteUser(String email) {
+        try {
+            User user = userDAO.findByEmailIgnoreCase(email).orElseThrow(UserNotFound::new);
+            userDAO.delete(user);
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 

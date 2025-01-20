@@ -5,12 +5,14 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dev.zine.api.model.auth.LoginBody;
@@ -109,6 +111,17 @@ public class AuthController {
             return ResponseEntity.ok().body(Map.of("status","failed"));
         }
         
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestBody String email) {
+        try {
+            userService.deleteUser(email);
+            return ResponseEntity.ok().build();
+        } catch( Exception e ) {    
+            return ResponseEntity.badRequest().body(Map.of("message",e.getMessage()));
+        }
     }
 
 }
