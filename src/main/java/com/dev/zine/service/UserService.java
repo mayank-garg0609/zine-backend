@@ -107,9 +107,9 @@ public class UserService {
         userDAO.save(user);
         // if (user.getEmail().matches(regex2024)) {
         // }
-        if(user.getEmail().matches(mnitEmailRegex)) {
-            addUserToWorkshopRooms(user);
-        }
+        // if(user.getEmail().matches(mnitEmailRegex)) {
+        //     addUserToWorkshopRooms(user);
+        // }
 
         // String findRole = user.getEmail().substring(0, 4);
         // Role role = roleDAO.findByRoleName(findRole).orElse(null);
@@ -259,6 +259,7 @@ public class UserService {
 
     public void deleteUser(String email) {
         try {
+            System.out.println("hi"+email);
             User user = userDAO.findByEmailIgnoreCase(email).orElseThrow(UserNotFound::new);
             userDAO.delete(user);
         } catch(Exception e) {

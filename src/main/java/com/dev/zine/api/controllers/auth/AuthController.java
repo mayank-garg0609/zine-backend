@@ -115,7 +115,7 @@ public class AuthController {
 
     @PreAuthorize("hasAuthority('admin')")
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteUser(@RequestBody String email) {
+    public ResponseEntity<?> deleteUser(@RequestParam String email) {
         try {
             userService.deleteUser(email);
             return ResponseEntity.ok().build();
