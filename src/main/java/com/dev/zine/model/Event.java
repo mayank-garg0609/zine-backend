@@ -17,7 +17,7 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name ="id" , nullable = false)
-    private long id;
+    private Long id;
 
     @NotNull
     @Column(name = "description", length = 1024)
@@ -28,6 +28,7 @@ public class Event {
     private String type;
 
     @NotNull
+    @Column(name = "dpUrl")
     private String dpUrl;
 
     @NotNull

@@ -40,12 +40,11 @@ Detailed documentation for all API endpoints, including HTTP methods, request/re
 	git clone https://github.com/zine-robotics/zine-backend.git
 	cd zine-backend
 	```
- 
+
 2. **Configure environment:**
-	```sh
 	- Update `src/main/resources/application.properties` with your DB and service credentials.
-	- Place your Firebase admin JSON in `src/main/resources/zine-firebase-admin.json`.
-	```
+	- Place your Firebase admin JSON in `src/main/resources/zine-firebase-admin.json` for local development.
+	- In production, mount the Firebase admin JSON at `/etc/secrets/zine-firebase-admin.json`.
 
 3. **Build the project:**
 	```sh
@@ -53,9 +52,12 @@ Detailed documentation for all API endpoints, including HTTP methods, request/re
 	```
 
 4. **Run locally:**
-	```sh
-	Open `ZineApplication.java` and run the `main` method directly from your IDE
-	```
+	 You can run the backend in two ways:
+	 - **Using the JAR file:** After building, all code and resources are packaged into a JAR (Java ARchive) file. Run it with:
+		 ```sh
+		 java -jar target/zine.jar
+		 ```
+	 - **Using your IDE:** Open `ZineApplication.java` and run the `main` method directly from your IDE (IntelliJ, Eclipse, VS Code, etc.).
 
 ## Docker
 Build and run the backend using Docker:
@@ -63,3 +65,13 @@ Build and run the backend using Docker:
 docker build -t zine-backend .
 docker run -p 8080:8080 --env ENVIRONMENT=production zine-backend
 ```
+
+## Contributing
+Contributions are welcome! Please open issues or submit pull requests for improvements or bug fixes.
+
+## License
+This project is licensed under the MIT License.
+
+---
+
+*For more details, see the ERD diagram and API documentation in the `docs/` folder.*

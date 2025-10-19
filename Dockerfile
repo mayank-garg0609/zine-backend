@@ -11,7 +11,6 @@ RUN mvn clean package -DskipTests
 #
 FROM openjdk:18-jdk-slim
 COPY --from=build /app/target/*.jar zine.jar
-COPY src/main/resources/zine-firebase-admin.json /app/zine-firebase-admin.json
 
 ENV ENVIRONMENT=production
 

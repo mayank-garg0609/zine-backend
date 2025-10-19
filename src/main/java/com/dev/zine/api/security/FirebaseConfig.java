@@ -28,9 +28,9 @@ public class FirebaseConfig {
         String absolutePath;
         System.out.println(env);
         if(env.equals("production")) {
-            absolutePath = "/etc/secret/zine-firebase-admin.json";
+            absolutePath = "/etc/secrets/zine-firebase-admin.json";
         } else{
-            String relativePath = "/etc/secret/zine-firebase-admin.json";
+            String relativePath = "src/main/resources/zine-firebase-admin.json";
             absolutePath = new File(relativePath).getAbsolutePath();
         }
       

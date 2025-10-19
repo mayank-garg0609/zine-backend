@@ -1,0 +1,23 @@
+# Ignore Firebase admin credentials - will be mounted as secret in production
+src/main/resources/zine-firebase-admin.json
+
+# Ignore git metadata
+.git
+.gitignore
+
+# Ignore IDE files
+.idea
+.vscode
+*.iml
+
+# Ignore build artifacts
+target/
+
+# Ignore environment files
+.env
+.env.test
+
+# Ignore documentation
+README.md
+HELP.md
+
