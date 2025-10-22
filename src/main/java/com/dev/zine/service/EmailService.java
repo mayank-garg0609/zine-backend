@@ -80,6 +80,7 @@ public class EmailService {
                     + "<p style=\"font-size: 12px; color: #999; margin-top: 20px;\">If you did not create this account, please ignore this email.</p>"
                     + "</div>";
 
+            helper.setFrom(fromAddress);
             helper.setTo(verificationToken.getUser().getEmail());
             helper.setSubject("Verify Your Email Address");
             helper.setText(htmlMsg, true);
@@ -119,6 +120,7 @@ public class EmailService {
                     + "<p style=\"font-size: 12px; color: #999; margin-top: 20px;\">If you did not request this, please ignore this email.</p>"
                     + "</div>";
 
+            helper.setFrom(fromAddress);
             helper.setTo(user.getEmail());
             helper.setSubject("Your password reset request link");
             helper.setText(htmlMsg, true);
@@ -194,6 +196,7 @@ public class EmailService {
                        .append("</body>")
                        .append("</html>");
             
+            helper.setFrom(fromAddress);
             helper.setSubject("Thank you for your response!");
             helper.setTo(user.getEmail());
             helper.setText(emailContent.toString(), true);
