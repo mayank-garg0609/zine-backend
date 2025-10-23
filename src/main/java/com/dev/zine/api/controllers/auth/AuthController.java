@@ -51,10 +51,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginBody loginBody) {
+        System.out.println("=== LOGIN REQUEST START ===");
+        
         String jwt = null;
         try {
+            System.out.println("Attempting to login user...");
             jwt = userService.loginUser(loginBody);
+            System.out.println("✓ Login successful, JWT generated");
         } catch (UserNotVerifiedException ex) {
+            System.out.println("✗ Login failed: User not verified");
+            System.out.println("New email sent: " + ex.isNewEmailSent());
+            
             LoginResponse response = new LoginResponse();
             response.setSuccess(false);
             String reason = "user_not_verified";
@@ -64,19 +71,30 @@ public class AuthController {
             response.setFailureReason(reason);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         } catch (EmailFailureException ex) {
+            System.out.println("✗ Login failed: Email failure");
+            System.out.println("Error message: " + ex.getMessage());
+            ex.printStackTrace();
+            
             LoginResponse response = new LoginResponse();
             response.setSuccess(false);
             response.setFailureReason(ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } catch(UserNotFound | IncorrectPasswordException e) {
+            System.out.println("✗ Login failed: " + e.getClass().getSimpleName());
+            System.out.println("Error message: " + e.getMessage());
+            
             LoginResponse response = new LoginResponse();
             response.setSuccess(false);
             response.setFailureReason(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+        
         if (jwt == null) {
+            System.out.println("✗ Login failed: JWT is null");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } else {
+            System.out.println("✓ Login successful, returning JWT");
+            System.out.println("=== LOGIN REQUEST END ===");
             LoginResponse response = new LoginResponse();
             response.setJwt(jwt);
             response.setSuccess(true);
@@ -91,12 +109,19 @@ public class AuthController {
 
     @PostMapping("/forgot")
     public ResponseEntity<Object> forgotPassword(@RequestParam String email) {
+        System.out.println("=== FORGOT PASSWORD REQUEST START ===");
+        System.out.println("Email: " + email);
         try {
             userService.forgotPassword(email);
+            System.out.println("✓ Forgot password completed successfully");
             return ResponseEntity.ok().build();
         } catch (EmailNotFoundException ex) {
+            System.out.println("✗ Email not found: " + ex.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("messsage", ex.getMessage()));
         } catch (EmailFailureException e) {
+            System.out.println("✗ EMAIL FAILURE EXCEPTION in forgot password!");
+            System.out.println("Error message: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

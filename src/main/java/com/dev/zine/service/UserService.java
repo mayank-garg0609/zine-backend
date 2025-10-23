@@ -169,11 +169,19 @@ public class UserService {
     @Transactional
     public String loginUser(LoginBody loginBody)
             throws UserNotVerifiedException, EmailFailureException, UserNotFound, IncorrectPasswordException {
+        System.out.println("[UserService] === loginUser START ===");
+        System.out.println("[UserService] Email: " + loginBody.getEmail());
+        
         Optional<User> opUser = userDAO.findByEmailIgnoreCase(loginBody.getEmail()); // checks if user exists
         if (opUser.isPresent()) {
             User user = opUser.get();
+            System.out.println("[UserService] User found: " + user.getEmail());
+            
             if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) { // verify password
+                System.out.println("[UserService] Password verified");
+                
                 if (user.isEmailVerified()) {
+                    System.out.println("[UserService] User is verified, proceeding with login");
                     // System.out.println(loginBody.getPushToken());
                     if (user.getEmail().matches(regex2024)) {
                         Role role2024 = roleDAO.findByRoleName("2024").orElse(null);
@@ -193,24 +201,41 @@ public class UserService {
                     }
                     return jwtService.generateJWT(user); // generate
                 } else {
+                    System.out.println("[UserService] ⚠ User is NOT verified");
                     List<VerificationToken> verificationTokens = user.getVerificationTokens();
                     boolean resend = verificationTokens.isEmpty() ||
                             verificationTokens.get(0).getCreatedTimestamp()
                                     .before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
                     // checks if tokens list is empty
                     // or the latest token is older than 1hr
+                    
+                    System.out.println("[UserService] Should resend verification email: " + resend);
 
                     if (resend) {
-                        VerificationToken verificationToken = createVerificationToken(user);
-                        verificationTokenDAO.save(verificationToken);
-                        emailService.sendVerificationEmail(verificationToken);
+                        try {
+                            System.out.println("[UserService] Creating verification token...");
+                            VerificationToken verificationToken = createVerificationToken(user);
+                            verificationTokenDAO.save(verificationToken);
+                            
+                            System.out.println("[UserService] Attempting to send verification email...");
+                            emailService.sendVerificationEmail(verificationToken);
+                            System.out.println("[UserService] ✓ Verification email sent");
+                        } catch (Exception e) {
+                            System.out.println("[UserService] ✗ Failed to send verification email!");
+                            System.out.println("[UserService] Exception type: " + e.getClass().getName());
+                            System.out.println("[UserService] Exception message: " + e.getMessage());
+                            e.printStackTrace();
+                            throw new EmailFailureException();
+                        }
                     }
                     throw new UserNotVerifiedException(resend);
                 }
             } else {
+                System.out.println("[UserService] ✗ Password verification failed");
                 throw new IncorrectPasswordException();
             }
         }
+        System.out.println("[UserService] ✗ User not found");
         throw new UserNotFound();
     }
 
@@ -233,14 +258,31 @@ public class UserService {
     }
 
     public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
+        System.out.println("[UserService] ===  forgotPassword START ===");
+        System.out.println("[UserService] Email: " + email);
         Optional<User> opUser = userDAO.findByEmailIgnoreCase(email);
         if (opUser.isPresent()) {
             User user = opUser.get();
+            System.out.println("[UserService] User found: " + user.getEmail());
+            System.out.println("[UserService] Generating password reset JWT...");
             String token = jwtService.generatePasswordResetJWT(user);
-            emailService.sendPasswordResetEmail(user, token);
+            System.out.println("[UserService] JWT generated successfully");
+            System.out.println("[UserService] Attempting to send password reset email...");
+            try {
+                emailService.sendPasswordResetEmail(user, token);
+                System.out.println("[UserService] ✓ Password reset email sent successfully");
+            } catch (Exception e) {
+                System.out.println("[UserService] ✗ Failed to send password reset email!");
+                System.out.println("[UserService] Exception type: " + e.getClass().getName());
+                System.out.println("[UserService] Exception message: " + e.getMessage());
+                e.printStackTrace();
+                throw new EmailFailureException();
+            }
         } else {
+            System.out.println("[UserService] ✗ User not found for email: " + email);
             throw new EmailNotFoundException();
         }
+        System.out.println("[UserService] === forgotPassword END ===");
     }
 
     public void resetPassword(PasswordResetBody body) {

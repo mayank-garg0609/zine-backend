@@ -56,14 +56,26 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(VerificationToken verificationToken) throws EmailFailureException {
+        System.out.println("[EmailService] === sendVerificationEmail START ===");
+        System.out.println("[EmailService] Recipient: " + verificationToken.getUser().getEmail());
+        System.out.println("[EmailService] Environment: " + env);
+        System.out.println("[EmailService] From address: " + fromAddress);
+        System.out.println("[EmailService] Production URL: " + prodUrl);
+        System.out.println("[EmailService] Dev URL: " + devUrl);
+        
         String url;
         if (env.equals("production")) {
             url = prodUrl;
+            System.out.println("[EmailService] Using PRODUCTION URL");
         } else {
             url = devUrl;
+            System.out.println("[EmailService] Using DEVELOPMENT URL");
         }
         String verifyLink = url + "/auth/verify?token=" + verificationToken.getToken();
+        System.out.println("[EmailService] Verification link: " + verifyLink);
+        
         try {
+            System.out.println("[EmailService] Creating MIME message...");
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
 
@@ -85,25 +97,54 @@ public class EmailService {
             helper.setSubject("Verify Your Email Address");
             helper.setText(htmlMsg, true);
 
+            System.out.println("[EmailService] Sending verification email via JavaMailSender...");
             javaMailSender.send(mimeMessage);
+            System.out.println("[EmailService] ✓ Verification email sent successfully!");
         } catch (MailException ex) {
+            System.out.println("[EmailService] ✗ MailException in sendVerificationEmail!");
+            System.out.println("[EmailService] Exception class: " + ex.getClass().getName());
+            System.out.println("[EmailService] Error message: " + ex.getMessage());
+            if (ex.getCause() != null) {
+                System.out.println("[EmailService] Root cause: " + ex.getCause().getMessage());
+                System.out.println("[EmailService] Root cause class: " + ex.getCause().getClass().getName());
+            }
+            ex.printStackTrace();
             throw new EmailFailureException();
         } catch (MessagingException e) {
+            System.out.println("[EmailService] ✗ MessagingException in sendVerificationEmail!");
+            System.out.println("[EmailService] Exception class: " + e.getClass().getName());
+            System.out.println("[EmailService] Error message: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("[EmailService] Root cause: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
             throw new EmailFailureException();
         }
+        System.out.println("[EmailService] === sendVerificationEmail END ===");
     }
 
     public void sendPasswordResetEmail(User user, String token) throws EmailFailureException {
+        System.out.println("[EmailService] === sendPasswordResetEmail START ===");
+        System.out.println("[EmailService] Recipient: " + user.getEmail());
+        System.out.println("[EmailService] Environment: " + env);
+        System.out.println("[EmailService] From address: " + fromAddress);
+        System.out.println("[EmailService] Production URL: " + prodUrl);
+        System.out.println("[EmailService] Dev URL: " + devUrl);
+        
         String url;
         if (env.equals("production")) {
             url = prodUrl;
+            System.out.println("[EmailService] Using PRODUCTION URL");
         } else {
             url = devUrl;
+            System.out.println("[EmailService] Using DEVELOPMENT URL");
         }
 
         String verifyLink = url + "/reset-password?token=" + token;
+        System.out.println("[EmailService] Reset link: " + verifyLink);
 
         try {
+            System.out.println("[EmailService] Creating MIME message...");
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
 
@@ -125,12 +166,30 @@ public class EmailService {
             helper.setSubject("Your password reset request link");
             helper.setText(htmlMsg, true);
 
+            System.out.println("[EmailService] Sending password reset email via JavaMailSender...");
             javaMailSender.send(mimeMessage);
+            System.out.println("[EmailService] ✓ Password reset email sent successfully!");
         } catch (MailException ex) {
+            System.out.println("[EmailService] ✗ MailException in sendPasswordResetEmail!");
+            System.out.println("[EmailService] Exception class: " + ex.getClass().getName());
+            System.out.println("[EmailService] Error message: " + ex.getMessage());
+            if (ex.getCause() != null) {
+                System.out.println("[EmailService] Root cause: " + ex.getCause().getMessage());
+                System.out.println("[EmailService] Root cause class: " + ex.getCause().getClass().getName());
+            }
+            ex.printStackTrace();
             throw new EmailFailureException();
         } catch (MessagingException e) {
+            System.out.println("[EmailService] ✗ MessagingException in sendPasswordResetEmail!");
+            System.out.println("[EmailService] Exception class: " + e.getClass().getName());
+            System.out.println("[EmailService] Error message: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.out.println("[EmailService] Root cause: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
             throw new EmailFailureException();
         }
+        System.out.println("[EmailService] === sendPasswordResetEmail END ===");
     }
 
     public void sendUserFormResponse(Form form, User user) throws EmailFailureException {
